@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import us.zoom.sdk.CustomizedMiniMeetingViewSize;
 import us.zoom.sdk.InMeetingNotificationHandle;
 import us.zoom.sdk.JoinMeetingOptions;
 import us.zoom.sdk.JoinMeetingParams;
@@ -149,15 +150,15 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
         if (errorCode != ZoomError.ZOOM_ERROR_SUCCESS) {
             Toast.makeText(this, "Failed to initialize Zoom SDK. Error: " + errorCode + ", internalErrorCode=" + internalErrorCode, Toast.LENGTH_LONG).show();
         } else {
-//            mZoomSDK.getZoomUIService().enableMinimizeMeeting(true);
-//            mZoomSDK.getZoomUIService().setMiniMeetingViewSize(new CustomizedMiniMeetingViewSize(0, 0, 360, 540));
-//            setMiniWindows();
-            mZoomSDK.getZoomUIService().setNewMeetingUI(CustomNewZoomUIActivity.class);
-            mZoomSDK.getZoomUIService().disablePIPMode(false);
-            mZoomSDK.getMeetingSettingsHelper().enable720p(false);
-            mZoomSDK.getMeetingSettingsHelper().enableShowMyMeetingElapseTime(true);
-            mZoomSDK.getMeetingService().addListener(this);
-            mZoomSDK.getMeetingSettingsHelper().setCustomizedNotificationData(null, handle);
+            ZoomSDK.getInstance().getZoomUIService().enableMinimizeMeeting(true);
+            ZoomSDK.getInstance().getZoomUIService().setMiniMeetingViewSize(new CustomizedMiniMeetingViewSize(0, 0, 360, 540));
+            setMiniWindows();
+            ZoomSDK.getInstance().getZoomUIService().setNewMeetingUI(CustomNewZoomUIActivity.class);
+            ZoomSDK.getInstance().getZoomUIService().disablePIPMode(false);
+            ZoomSDK.getInstance().getMeetingSettingsHelper().enable720p(false);
+            ZoomSDK.getInstance().getMeetingSettingsHelper().enableShowMyMeetingElapseTime(true);
+            ZoomSDK.getInstance().getMeetingService().addListener(this);
+            ZoomSDK.getInstance().getMeetingSettingsHelper().setCustomizedNotificationData(null, handle);
             Toast.makeText(this, "Initialize Zoom SDK successfully.", Toast.LENGTH_LONG).show();
 
             if (mZoomSDK.tryAutoLoginZoom() == ZoomApiError.ZOOM_API_ERROR_SUCCESS) {

@@ -15,7 +15,6 @@ import us.zoom.sdk.SimpleZoomUIDelegate;
 import us.zoom.sdk.ZoomAuthenticationError;
 import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdk.ZoomSDKAuthenticationListener;
-import us.zoom.sdksample.initsdk.AuthConstants;
 import us.zoom.sdksample.R;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.MyMeetingActivity;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.RawDataMeetingActivity;
@@ -38,7 +37,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class LoginUserStartJoinMeetingActivity extends Activity implements AuthConstants, MeetingServiceListener, ZoomSDKAuthenticationListener {
+public class LoginUserStartJoinMeetingActivity extends Activity implements MeetingServiceListener, ZoomSDKAuthenticationListener {
 
     private final static String TAG = "ZoomSDKExample";
 

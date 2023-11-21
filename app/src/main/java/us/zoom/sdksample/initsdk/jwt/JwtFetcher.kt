@@ -37,6 +37,8 @@ class JwtFetcher(
 
     companion object {
 
+        const val WEB_DOMAIN = "zoom.us"
+
         private fun getJwtEndpoint(default: String): String =
             String.getSystemProperty(PROPERTY_JWT_ENDPOINT, default)!!
 

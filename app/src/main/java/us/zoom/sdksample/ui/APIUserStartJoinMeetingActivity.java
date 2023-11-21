@@ -20,12 +20,11 @@ import us.zoom.sdk.MeetingStatus;
 import us.zoom.sdk.SimpleZoomUIDelegate;
 import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdksample.R;
-import us.zoom.sdksample.initsdk.AuthConstants;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.MyMeetingActivity;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingWindowHelper;
 import us.zoom.sdksample.startjoinmeeting.apiuser.ApiUserStartMeetingHelper;
 
-public class APIUserStartJoinMeetingActivity extends Activity implements AuthConstants, MeetingServiceListener, View.OnClickListener {
+public class APIUserStartJoinMeetingActivity extends Activity implements MeetingServiceListener, View.OnClickListener {
 
     private final static String TAG = "ZoomSDKExample";
 
