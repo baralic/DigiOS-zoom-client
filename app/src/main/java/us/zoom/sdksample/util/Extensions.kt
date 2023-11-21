@@ -19,3 +19,20 @@ fun String.Companion.getSystemProperty(key: String, default: String? = null): St
 
     return default
 }
+
+/**
+ * Extension for extracting [Boolean] value from the [android.os.SystemProperties].
+ */
+@SuppressLint("PrivateApi")
+fun Boolean.Companion.getSystemProperty(key: String, default: Boolean = false): Boolean {
+    try {
+        val clazz = Class.forName("android.os.SystemProperties")
+        val method = clazz.getDeclaredMethod("getBoolean", String::class.java, Boolean::class.java)
+        return method.invoke(null, key, default) as Boolean
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    return default
+}

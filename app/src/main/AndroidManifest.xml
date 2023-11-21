@@ -65,7 +65,7 @@
         <activity android:name="us.zoom.sdksample.ui.InitAuthSDKActivity"
             android:label="@string/this_app_name"
             android:configChanges="screenSize|orientation|keyboardHidden|keyboard"
-            android:screenOrientation="portrait"
+            android:screenOrientation="landscape"
             android:icon="@drawable/ic_launcher"
             android:exported="true"
             android:theme="@style/ZMTheme.MainWindow" >

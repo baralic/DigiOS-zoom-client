@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
+import us.zoom.sdksample.util.Constants.JWT_ENDPOINT
+import us.zoom.sdksample.util.Constants.PROPERTY_JWT_ENDPOINT
 import us.zoom.sdksample.util.getSystemProperty
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -34,11 +36,11 @@ class JwtFetcher(
     }
 
     companion object {
-        const val JWT_ENDPOINT = "https://628f-94-189-232-137.ngrok-free.app"
-        private const val PROPERTY_JWT_ENDPOINT = "debug.property.digilens.jwt.endpoint"
 
         private fun getJwtEndpoint(default: String): String =
             String.getSystemProperty(PROPERTY_JWT_ENDPOINT, default)!!
+
+        fun newInstance(callback: Callback) = JwtFetcher(callback = callback)
     }
 
     private var dialog: ProgressDialog? = null
