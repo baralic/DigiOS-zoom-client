@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdkVersion = 33
@@ -10,7 +11,7 @@ android {
     
     defaultConfig {
         applicationId "us.zoom.sdkexample"
-        minSdkVersion 23
+        minSdkVersion 30
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
@@ -43,12 +44,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
     implementation project(':commonlib')
     implementation project(':mobilertc')
-
+    implementation 'androidx.core:core-ktx:1.8.0'
 }
 
 configurations.all {
