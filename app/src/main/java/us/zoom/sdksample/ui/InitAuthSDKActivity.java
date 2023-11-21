@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -38,8 +40,8 @@ import us.zoom.sdksample.startjoinmeeting.UserLoginCallback;
 import us.zoom.sdksample.util.Constants;
 
 public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback,
-        MeetingServiceListener, UserLoginCallback.ZoomDemoAuthenticationListener, OnClickListener,
-        JwtFetcher.Callback {
+        MeetingServiceListener, UserLoginCallback.ZoomDemoAuthenticationListener,
+        OnClickListener, CompoundButton.OnCheckedChangeListener, JwtFetcher.Callback {
 
     private final static String TAG = "DigiOS_Zoom";
 
@@ -54,7 +56,11 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
 
     private Button mReturnMeeting;
 
+    private CheckBox mRememberMe;
+
     private boolean isResumed = false;
+
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,14 +74,23 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
         }
 
         setContentView(R.layout.init_auth_sdk);
+        prefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
 
         mProgressPanel = (View) findViewById(R.id.progressPanel);
 
         mReturnMeeting = findViewById(R.id.btn_return);
-
         layoutJoin = findViewById(R.id.layout_join);
+
+        mRememberMe = findViewById(R.id.check_remember);
+        mRememberMe.setChecked(isUserRemembered());
+        mRememberMe.setOnCheckedChangeListener(this);
+
         numberEdit = findViewById(R.id.edit_join_number);
+        numberEdit.setText(getSavedMeetingId());
+
         nameEdit = findViewById(R.id.edit_join_name);
+        nameEdit.setText(getSavedUsername());
+
         meetingTokenEdit = findViewById(R.id.edit_join_meeting_token);
         mProgressPanel.setVisibility(View.GONE);
         if (showMeetingTokenUI) {
@@ -85,10 +100,10 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
         JwtFetcher.Companion.newInstance(this).execute();
     }
 
-    InMeetingNotificationHandle handle= (context, intent) -> {
+    InMeetingNotificationHandle handle = (context, intent) -> {
         intent = new Intent(context, MyMeetingActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        if(!(context instanceof Activity)) {
+        if (!(context instanceof Activity)) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         intent.setAction(InMeetingNotificationHandle.ACTION_RETURN_TO_CONF);
@@ -113,6 +128,7 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
 
         if (mZoomSDK.isInitialized()) {
             layoutJoin.setVisibility(View.VISIBLE);
+            layoutJoin.requestFocus();
             showSettings(true);
 
             mZoomSDK.getMeetingService().addListener(this);
@@ -183,9 +199,8 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
     }
 
     public void onClickSettings(View view) {
-        if(!mZoomSDK.isInitialized())
-        {
-            Toast.makeText(this,"Init SDK First",Toast.LENGTH_SHORT).show();
+        if (!mZoomSDK.isInitialized()) {
+            Toast.makeText(this, "Init SDK First", Toast.LENGTH_SHORT).show();
             InitAuthSDKHelper.getInstance().initSDK(this, this);
             return;
         }
@@ -209,7 +224,7 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
 
     @Override
     public void onZoomIdentityExpired() {
-        Log.e(TAG,"onZoomIdentityExpired");
+        Log.e(TAG, "onZoomIdentityExpired");
         if (mZoomSDK.isLoggedIn()) {
             mZoomSDK.logoutZoom();
         }
@@ -217,7 +232,7 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
 
     @Override
     public void onZoomAuthIdentityExpired() {
-        Log.d(TAG,"onZoomAuthIdentityExpired");
+        Log.d(TAG, "onZoomAuthIdentityExpired");
         JwtFetcher.Companion.newInstance(this).execute();
     }
 
@@ -243,6 +258,8 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
         mZoomSDK.getMeetingService().joinMeetingWithParams(
                 this, params, ZoomMeetingUISettingHelper.getJoinMeetingOptions()
         );
+
+        saveUserInput();
     }
 
     private void showProgressPanel(boolean show) {
@@ -335,12 +352,12 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
 
     @Override
     public void onMeetingParameterNotification(MeetingParameter meetingParameter) {
-        Log.d(TAG, "onMeetingParameterNotification "+meetingParameter);
+        Log.d(TAG, "onMeetingParameterNotification " + meetingParameter);
     }
 
     @Override
     public void onMeetingStatusChanged(MeetingStatus meetingStatus, int errorCode, int internalErrorCode) {
-        Log.d(TAG,"onMeetingStatusChanged "+meetingStatus+":"+errorCode+":"+internalErrorCode);
+        Log.d(TAG, "onMeetingStatusChanged " + meetingStatus + ":" + errorCode + ":" + internalErrorCode);
         if (!mZoomSDK.isInitialized()) {
             showProgressPanel(false);
             return;
@@ -365,7 +382,7 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
             Intent intent = null;
             if (!enable) {
                 intent = new Intent(this, MyMeetingActivity.class);
-                intent.putExtra("from",MyMeetingActivity.JOIN_FROM_UNLOGIN);
+                intent.putExtra("from", MyMeetingActivity.JOIN_FROM_UNLOGIN);
             } else {
                 intent = new Intent(this, RawDataMeetingActivity.class);
             }
@@ -401,5 +418,41 @@ public class InitAuthSDKActivity extends Activity implements InitAuthSDKCallback
         if (null != view) {
             view.setVisibility(visibility);
         }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(Constants.PREFS_IS_REMEMBERED, isChecked);
+        if (!isChecked) {
+            editor.putString(Constants.PREFS_MEETING_ID, "");
+            editor.putString(Constants.PREFS_USERNAME, "");
+        }
+        editor.apply();
+    }
+
+    private boolean isUserRemembered() {
+        return prefs.getBoolean(Constants.PREFS_IS_REMEMBERED, false);
+    }
+
+    private String getSavedMeetingId() {
+        return prefs.getString(Constants.PREFS_MEETING_ID, "");
+    }
+
+    private String getSavedUsername() {
+        return prefs.getString(Constants.PREFS_USERNAME, "");
+    }
+
+    private void saveUserInput() {
+        SharedPreferences.Editor editor = prefs.edit();
+        String meetingId = "";
+        String username = "";
+        if (mRememberMe.isChecked()) {
+            meetingId = numberEdit.getText().toString();
+            username = nameEdit.getText().toString();
+        }
+        editor.putString(Constants.PREFS_MEETING_ID, meetingId);
+        editor.putString(Constants.PREFS_USERNAME, username);
+        editor.apply();
     }
 }
