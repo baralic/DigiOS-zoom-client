@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/transparent"
-    tools:background="@android:color/background_dark"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    tools:background="@android:color/background_dark">
 
     <!--    <TextView-->
     <!--        android:layout_width="wrap_content"-->
@@ -61,14 +61,15 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:focusable="true"
+            android:focusedByDefault="true"
             android:hint="Meeting ID"
             android:inputType="number"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF"
             android:minWidth="150dp"
             android:nextFocusLeft="@id/btn_join_meeting"
             android:nextFocusRight="@id/edit_join_name"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textColor="#FFFFFFFF"
+            android:textColorHint="#FFFFFFFF" />
 
         <EditText
             android:id="@+id/edit_join_name"
@@ -78,11 +79,11 @@
             android:focusable="true"
             android:hint="Username"
             android:minWidth="150dp"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF"
             android:nextFocusLeft="@id/edit_join_number"
             android:nextFocusRight="@id/edit_join_meeting_token"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:textColor="#FFFFFFFF"
+            android:textColorHint="#FFFFFFFF" />
 
         <EditText
             android:id="@+id/edit_join_meeting_token"
@@ -90,14 +91,30 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:focusable="true"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF"
             android:hint="Input zoom meeting token(option)"
             android:imeOptions="actionNext"
             android:nextFocusLeft="@id/edit_join_number"
-            android:nextFocusRight="@id/btn_join_meeting"
+            android:nextFocusRight="@id/check_remember"
             android:singleLine="true"
+            android:textColor="#FFFFFFFF"
+            android:textColorHint="#FFFFFFFF"
             android:visibility="gone" />
+
+        <CheckBox
+            android:id="@+id/check_remember"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="#0EBBD8"
+            android:checked="false"
+            android:minWidth="150dp"
+            android:focusable="true"
+            android:layout_marginBottom="10dp"
+            android:nextFocusLeft="@id/edit_join_meeting_token"
+            android:nextFocusRight="@id/btn_join_meeting"
+            android:text="Remember me"
+            android:paddingStart="15dp"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/btn_join_meeting"
@@ -106,23 +123,26 @@
             android:layout_marginBottom="10dp"
             android:focusable="true"
             android:minWidth="150dp"
-            android:nextFocusLeft="@id/edit_join_meeting_token"
-            android:nextFocusRight="@id/edit_join_number"
+            android:nextFocusLeft="@id/check_remember"
+            android:nextFocusRight="@id/btnSettings"
             android:onClick="onClickJoin"
-            android:textColor="#0EBBD8"
             android:text="Join"
-            android:textAllCaps="true" />
-    </LinearLayout>
+            android:textAllCaps="true"
+            android:textColor="#0EBBD8" />
 
-    <Button
-        android:id="@+id/btnSettings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:minWidth="150dp"
-        android:onClick="onClickSettings"
-        android:text="Settings"
-        android:visibility="gone" />
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="150dp"
+            android:onClick="onClickSettings"
+            android:nextFocusLeft="@id/btn_join_meeting"
+            android:nextFocusRight="@id/edit_join_number"
+            android:text="Settings"
+            android:textColor="#0EBBD8"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/progressPanel"
