@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pressed state would be processed here, and show an underline -->
+    <item android:state_focused="true" android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="@dimen/button_corner_radius" />
+                    <stroke android:width="2dp" android:color="@color/primary" />
+                    <solid android:color="@color/primaryVariant" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item android:state_focused="false" android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="@dimen/button_corner_radius" />
+                    <stroke android:width="2dp" android:color="@color/primary" />
+                    <solid android:color="@color/primaryVariant" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Not pressed state, consider adding other focused state here -->
+    <item android:state_focused="false" android:state_pressed="false">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="@dimen/button_corner_radius" />
+                    <solid android:color="@color/secondaryVariant" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Pressed state would be processed here, and show an underline -->
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="@dimen/button_corner_radius" />
+                    <stroke android:width="2dp" android:color="@color/primary" />
+                    <solid android:color="@color/primary" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

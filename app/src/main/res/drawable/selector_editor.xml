@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pressed state would be processed here, and show an underline -->
+    <item android:state_focused="true" android:state_pressed="true">
+        <layer-list>
+            <item android:left="-3dp" android:right="-3dp" android:top="-3dp">
+                <shape android:shape="rectangle">
+                    <stroke android:width="1.5dp" android:color="@color/primaryVariant" />
+                    <solid android:color="@color/background" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Not pressed state, consider adding other focused state here -->
+    <item android:state_focused="false" android:state_pressed="false">
+        <layer-list>
+            <item android:left="-3dp" android:right="-3dp" android:top="-3dp">
+                <shape android:shape="rectangle">
+                    <stroke android:width="1.5dp" android:color="@color/secondary" />
+                    <solid android:color="@color/background" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Pressed state would be processed here, and show an underline -->
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:left="-3dp" android:right="-3dp" android:top="-3dp">
+                <shape android:shape="rectangle">
+                    <stroke android:width="1.5dp" android:color="@color/primary" />
+                    <solid android:color="@color/background" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

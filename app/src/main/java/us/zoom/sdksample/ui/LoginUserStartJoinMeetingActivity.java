@@ -1,5 +1,19 @@
 package us.zoom.sdksample.ui;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import us.zoom.sdk.DirectShareStatus;
 import us.zoom.sdk.IDirectShareServiceHelper;
 import us.zoom.sdk.IDirectShareServiceHelperEvent;
@@ -15,7 +29,6 @@ import us.zoom.sdk.SimpleZoomUIDelegate;
 import us.zoom.sdk.ZoomAuthenticationError;
 import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdk.ZoomSDKAuthenticationListener;
-import us.zoom.sdksample.initsdk.AuthConstants;
 import us.zoom.sdksample.R;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.MyMeetingActivity;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.RawDataMeetingActivity;
@@ -23,22 +36,10 @@ import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingWindo
 import us.zoom.sdksample.inmeetingfunction.zoommeetingui.ZoomMeetingUISettingHelper;
 import us.zoom.sdksample.startjoinmeeting.LoginUserStartMeetingHelper;
 import us.zoom.sdksample.startjoinmeeting.joinmeetingonly.JoinMeetingHelper;
+import us.zoom.sdksample.util.Constants;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
-public class LoginUserStartJoinMeetingActivity extends Activity implements AuthConstants, MeetingServiceListener, ZoomSDKAuthenticationListener {
+public class LoginUserStartJoinMeetingActivity extends Activity implements
+        Constants.Auth, MeetingServiceListener, ZoomSDKAuthenticationListener {
 
     private final static String TAG = "ZoomSDKExample";
 

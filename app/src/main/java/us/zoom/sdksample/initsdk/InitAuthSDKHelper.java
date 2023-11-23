@@ -7,11 +7,12 @@ import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdk.ZoomSDKInitParams;
 import us.zoom.sdk.ZoomSDKInitializeListener;
 import us.zoom.sdk.ZoomSDKRawDataMemoryMode;
+import us.zoom.sdksample.util.Constants;
 
 /**
  * Init and auth zoom sdk first before using SDK interfaces
  */
-public class InitAuthSDKHelper implements AuthConstants, ZoomSDKInitializeListener {
+public class InitAuthSDKHelper implements Constants.Auth, ZoomSDKInitializeListener {
 
     private final static String TAG = "InitAuthSDKHelper";
 
@@ -44,7 +45,7 @@ public class InitAuthSDKHelper implements AuthConstants, ZoomSDKInitializeListen
             initParams.enableLog = true;
             initParams.enableGenerateDump =true;
             initParams.logSize = 5;
-            initParams.domain=AuthConstants.WEB_DOMAIN;
+            initParams.domain = Constants.Auth.WEB_DOMAIN;
             initParams.videoRawDataMemoryMode = ZoomSDKRawDataMemoryMode.ZoomSDKRawDataMemoryModeStack;
             mZoomSDK.initialize(context, this, initParams);
         }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>@style/ZMTheme.MainWindow
+
+    <style name="Theme.DigiOsZoomTheme" parent="@style/ZMTheme.MainWindow">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:screenOrientation">landscape</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+
+    <style name="Basic.EditTextStyle" parent="@style/Widget.AppCompat.EditText">
+        <item name="android:imeOptions">flagNoExtractUi|actionNext</item>
+        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textColorHint">@color/secondaryVariant</item>
+        <item name="android:background">@drawable/selector_editor</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:paddingTop">7dp</item>
+        <item name="android:paddingStart">7dp</item>
+        <item name="android:paddingEnd">7dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:minWidth">150dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <style name="Basic.CheckboxStyle" parent="@style/Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="android:background">@drawable/selector_checkbox</item>
+        <item name="android:buttonTint">@color/primary</item>
+        <item name="android:textColor">@color/secondary</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minWidth">150dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:paddingStart">15dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Basic.ButtonStyle" parent="@style/Widget.AppCompat.Button">
+        <item name="android:background">@drawable/selector_button</item>
+        <item name="android:textColor">@color/secondaryDark</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minWidth">150dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>
