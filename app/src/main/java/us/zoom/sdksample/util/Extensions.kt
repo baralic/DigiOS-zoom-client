@@ -1,6 +1,11 @@
 package us.zoom.sdksample.util
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 /**
  * Extension for extracting [String] value from the [android.os.SystemProperties].
@@ -35,4 +40,11 @@ fun Boolean.Companion.getSystemProperty(key: String, default: Boolean = false): 
     }
 
     return default
+}
+
+fun hideSystemBars(activity: Activity) {
+    WindowCompat.getInsetsController(activity.window, activity.window.decorView).apply {
+        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        hide(WindowInsetsCompat.Type.systemBars())
+    }
 }

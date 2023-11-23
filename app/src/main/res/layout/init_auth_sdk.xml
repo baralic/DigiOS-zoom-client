@@ -3,19 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/transparent"
+    android:background="@color/background"
+    android:id="@+id/root"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="10dp"
-    tools:background="@android:color/background_dark">
-
-    <!--    <TextView-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:gravity="center"-->
-    <!--        android:text="Zoom Sdk Sample"-->
-    <!--        android:textSize="20sp"-->
-    <!--        android:textStyle="bold" />-->
+    android:padding="10dp">
 
     <!--    <Button-->
     <!--        android:id="@+id/btnSSOLogin"-->
@@ -34,112 +26,110 @@
     <!--        android:text="API User" />-->
 
 
-    <Button
-        android:id="@+id/btn_return"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:minWidth="150dp"
-        android:onClick="onClickReturnMeeting"
-        android:text="Return Meeting"
-        android:visibility="gone" />
-
     <LinearLayout
         android:id="@+id/layout_join"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:descendantFocusability="afterDescendants"
         android:focusable="true"
         android:gravity="center"
         android:orientation="vertical">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/login_title"
+            android:textColor="@color/secondary"
+            android:layout_marginBottom="20dp"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
         <EditText
             android:id="@+id/edit_join_number"
+            style="@style/Basic.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:focusable="true"
             android:focusedByDefault="true"
-            android:hint="Meeting ID"
+            android:hint="@string/login_meeting_id_hint"
             android:inputType="number"
-            android:minWidth="150dp"
+            android:importantForAutofill="no"
             android:nextFocusLeft="@id/btn_join_meeting"
-            android:nextFocusRight="@id/edit_join_name"
-            android:textAlignment="center"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF" />
+            android:nextFocusRight="@id/edit_join_name">
+            <requestFocus/>
+        </EditText>
 
         <EditText
             android:id="@+id/edit_join_name"
+            style="@style/Basic.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:focusable="true"
-            android:hint="Username"
-            android:minWidth="150dp"
+            android:inputType="text"
+            android:hint="@string/login_username_hint"
+            android:importantForAutofill="no"
             android:nextFocusLeft="@id/edit_join_number"
-            android:nextFocusRight="@id/edit_join_meeting_token"
-            android:singleLine="true"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF" />
+            android:nextFocusRight="@id/check_remember" />
 
         <EditText
             android:id="@+id/edit_join_meeting_token"
+            style="@style/Basic.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:focusable="true"
-            android:hint="Input zoom meeting token(option)"
-            android:imeOptions="actionNext"
+            android:hint="@string/login_zak_hint"
+            android:importantForAutofill="no"
+            android:inputType="number"
             android:nextFocusLeft="@id/edit_join_number"
             android:nextFocusRight="@id/check_remember"
-            android:singleLine="true"
-            android:textColor="#FFFFFFFF"
-            android:textColorHint="#FFFFFFFF"
             android:visibility="gone" />
 
         <CheckBox
             android:id="@+id/check_remember"
+            style="@style/Basic.CheckboxStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:buttonTint="#0EBBD8"
-            android:checked="false"
-            android:minWidth="150dp"
-            android:focusable="true"
             android:layout_marginBottom="10dp"
-            android:nextFocusLeft="@id/edit_join_meeting_token"
+            android:nextFocusLeft="@id/edit_join_name"
             android:nextFocusRight="@id/btn_join_meeting"
-            android:text="Remember me"
-            android:paddingStart="15dp"
-            android:textAllCaps="true"
-            android:textColor="@android:color/white" />
+            android:text="@string/login_remember_me_label"
+            android:textColor="@color/secondary" />
 
         <Button
             android:id="@+id/btn_join_meeting"
+            style="@style/Basic.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:focusable="true"
-            android:minWidth="150dp"
             android:nextFocusLeft="@id/check_remember"
             android:nextFocusRight="@id/btnSettings"
             android:onClick="onClickJoin"
-            android:text="Join"
-            android:textAllCaps="true"
-            android:textColor="#0EBBD8" />
+            android:text="@string/login_join_label" />
 
         <Button
             android:id="@+id/btnSettings"
+            style="@style/Basic.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="150dp"
-            android:onClick="onClickSettings"
+            android:layout_marginBottom="10dp"
             android:nextFocusLeft="@id/btn_join_meeting"
             android:nextFocusRight="@id/edit_join_number"
-            android:text="Settings"
-            android:textColor="#0EBBD8"
+            android:onClick="onClickSettings"
+            android:text="@string/login_settings_label"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <Button
+            android:id="@+id/btn_return"
+            style="@style/Basic.ButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:nextFocusLeft="@id/btn_join_meeting"
+            android:nextFocusRight="@id/edit_join_number"
+            android:onClick="onClickReturnMeeting"
+            android:text="@string/login_return_meeting_label"
             android:visibility="gone"
             tools:visibility="visible" />
     </LinearLayout>
@@ -149,6 +139,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
+        android:background="@color/zm_red"
+        android:focusable="false"
         android:gravity="center"
         android:orientation="horizontal"
         android:visibility="gone">
@@ -164,6 +156,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="5dp"
-            android:text="Logining... " />
+            android:text="@string/login_loading_label" />
     </LinearLayout>
 </LinearLayout>

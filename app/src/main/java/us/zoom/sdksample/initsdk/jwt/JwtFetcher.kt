@@ -9,8 +9,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
-import us.zoom.sdksample.util.Constants.JWT_ENDPOINT
-import us.zoom.sdksample.util.Constants.PROPERTY_JWT_ENDPOINT
+import us.zoom.sdksample.util.Constants
+import us.zoom.sdksample.util.Constants.Endpoint.Companion.JWT_ENDPOINT
+import us.zoom.sdksample.util.Constants.SysProperty.Companion.PROPERTY_JWT_ENDPOINT
 import us.zoom.sdksample.util.getSystemProperty
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -22,7 +23,7 @@ class JwtFetcher(
     private val endpoint: String,
     private val callback: Callback,
     private val progress: Boolean = true,
-) {
+) : Constants.Endpoint, Constants.SysProperty {
 
     constructor(callback: Callback) : this(
         endpoint = getJwtEndpoint(JWT_ENDPOINT),
@@ -39,8 +40,6 @@ class JwtFetcher(
 
         private fun getJwtEndpoint(default: String): String =
             String.getSystemProperty(PROPERTY_JWT_ENDPOINT, default)!!
-
-        fun newInstance(callback: Callback) = JwtFetcher(callback = callback)
     }
 
     private var dialog: ProgressDialog? = null
