@@ -143,21 +143,21 @@
             android:configChanges="screenSize"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
 
         <activity
             android:name=".ui.MeetingSettingActivity"
             android:configChanges="screenSize"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
 
         <activity
             android:name=".inmeetingfunction.customizedmeetingui.RawDataMeetingActivity"
             android:configChanges="screenSize|orientation|keyboardHidden|keyboard"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
         <activity
             android:name=".ui.QAActivity"
             android:exported="false" />
@@ -167,21 +167,21 @@
             android:configChanges="screenSize"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
 
         <activity
             android:name=".ui.BoEditActivity"
             android:configChanges="screenSize"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
 
         <activity
             android:name="us.zoom.sdksample.inmeetingfunction.zoommeetingui.CustomNewZoomUIActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:hardwareAccelerated="true"
-            android:theme="@style/ZMTheme.SubWindow" />
+            android:theme="@style/Theme.DigiOsZoomTheme" />
     </application>
 
 </manifest> 

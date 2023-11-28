@@ -7,8 +7,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.View.OnFocusChangeListener
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
@@ -39,10 +37,13 @@ import us.zoom.sdksample.startjoinmeeting.UserLoginCallback.ZoomDemoAuthenticati
 import us.zoom.sdksample.util.Constants
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.Constants.hideSystemBars
+import us.zoom.sdksample.util.KeyboardFocusChangeListener
+import us.zoom.sdksample.util.getSystemProperty
 
 class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallback,
     JwtFetcher.Callback, Constants.Preferences, SysProperty, MeetingServiceListener,
     CompoundButton.OnCheckedChangeListener, ZoomDemoAuthenticationListener {
+
     private var mZoomSDK: ZoomSDK = ZoomSDK.getInstance()
     private lateinit var mReturnMeeting: Button
     private lateinit var mRememberMe: CheckBox
@@ -53,8 +54,12 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
     private lateinit var mProgressPanel: View
     private var isResumed = false
     private lateinit var prefs: SharedPreferences
+
+    private var isAutoJoin: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         hideSystemBars(this)
 
         if (mZoomSDK.isLoggedIn) {
@@ -65,6 +70,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
 
         setContentView(R.layout.init_auth_sdk)
         prefs = getPreferences(this)
+        prepareMeeting(intent, prefs)
 
         mProgressPanel = findViewById(R.id.progressPanel)
         mReturnMeeting = findViewById(R.id.btn_return)
@@ -86,17 +92,28 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
             meetingTokenEdit.visibility = View.VISIBLE
         }
         JwtFetcher(this).execute()
+        showProgressPanel(true)
     }
 
-    private val focusChangeListener = OnFocusChangeListener { view: View, hasFocus: Boolean ->
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        val id = view.id
-        if (id == R.id.edit_join_number || id == R.id.edit_join_name || id == R.id.edit_join_meeting_token) {
-            imm.showSoftInput(view, 0)
-        } else {
-            imm.hideSoftInputFromWindow(view.windowToken, 0)
+    private fun prepareMeeting(intent: Intent, prefs: SharedPreferences) {
+        isAutoJoin = intent.extras?.getBoolean(Constants.KEY_AUTO_JOIN) ?: false
+
+        if (isAutoJoin) {
+            val editor = prefs.edit()
+            val id = String.getSystemProperty(SysProperty.PROPERTY_ZOOM_ID, "")!!
+            val username = String.getSystemProperty(SysProperty.PROPERTY_ZOOM_USERNAME, "")!!
+            val password = String.getSystemProperty(SysProperty.PROPERTY_ZOOM_PASSWORD, "")!!
+            editUsername(editor, username)
+            editMeetingId(editor, id)
+            editRememberMe(editor, true)
+            editor.apply()
+            Log.d(TAG, "ID=$id, Username=$username, Password=$password")
         }
     }
+
+    private val focusChangeListener = KeyboardFocusChangeListener(
+        arrayOf(R.id.edit_join_number, R.id.edit_join_name, R.id.edit_join_meeting_token)
+    )
 
     private var handle = InMeetingNotificationHandle { context: Context, _: Intent ->
         val intent = Intent(context, MyMeetingActivity::class.java)
@@ -150,10 +167,8 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
     }
 
     override fun onZoomSDKInitializeResult(errorCode: Int, internalErrorCode: Int) {
-        Log.i(
-            TAG,
-            "onZoomSDKInitializeResult, errorCode=$errorCode, internalErrorCode=$internalErrorCode"
-        )
+        Log.i(TAG,"onZoomSDKInitializeResult, errorCode=$errorCode, internalErrorCode=$internalErrorCode")
+        showProgressPanel(false)
         if (errorCode != ZoomError.ZOOM_ERROR_SUCCESS) {
             Toast.makeText(
                 this,
@@ -161,21 +176,27 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
                 Toast.LENGTH_LONG
             ).show()
         } else {
+//            Toast.makeText(this, "Initialize Zoom SDK successfully.", Toast.LENGTH_LONG).show()
 //            mZoomSDK.getZoomUIService().enableMinimizeMeeting(true);
 //            mZoomSDK.getZoomUIService().setMiniMeetingViewSize(new CustomizedMiniMeetingViewSize(0, 0, 360, 540));
 //            setMiniWindows();
+            mZoomSDK.meetingService.addListener(this)
             mZoomSDK.zoomUIService.setNewMeetingUI(CustomNewZoomUIActivity::class.java)
             mZoomSDK.zoomUIService.disablePIPMode(false)
+            mZoomSDK.meetingSettingsHelper.isCustomizedMeetingUIEnabled = true
             mZoomSDK.meetingSettingsHelper.enable720p(false)
             mZoomSDK.meetingSettingsHelper.enableShowMyMeetingElapseTime(true)
-            mZoomSDK.meetingService.addListener(this)
             mZoomSDK.meetingSettingsHelper.setCustomizedNotificationData(null, handle)
-            Toast.makeText(this, "Initialize Zoom SDK successfully.", Toast.LENGTH_LONG).show()
+
             if (mZoomSDK.tryAutoLoginZoom() == ZoomApiError.ZOOM_API_ERROR_SUCCESS) {
                 UserLoginCallback.getInstance().addListener(this)
                 showProgressPanel(true)
             } else {
                 showProgressPanel(false)
+            }
+
+            if (isAutoJoin) {
+                onClickJoin(findViewById(R.id.btn_join_meeting))
             }
         }
     }

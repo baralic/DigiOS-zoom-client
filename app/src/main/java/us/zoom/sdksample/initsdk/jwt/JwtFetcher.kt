@@ -11,7 +11,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import us.zoom.sdksample.util.Constants
 import us.zoom.sdksample.util.Constants.Endpoint.Companion.JWT_ENDPOINT
-import us.zoom.sdksample.util.Constants.SysProperty.Companion.PROPERTY_JWT_ENDPOINT
+import us.zoom.sdksample.util.Constants.SysProperty.Companion.PROPERTY_ZOOM_JWT_ENDPOINT
 import us.zoom.sdksample.util.getSystemProperty
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -22,7 +22,7 @@ import java.net.URL
 class JwtFetcher(
     private val endpoint: String,
     private val callback: Callback,
-    private val progress: Boolean = true,
+    private val progress: Boolean = false,
 ) : Constants.Endpoint, Constants.SysProperty {
 
     constructor(callback: Callback) : this(
@@ -39,7 +39,7 @@ class JwtFetcher(
     companion object {
 
         private fun getJwtEndpoint(default: String): String =
-            String.getSystemProperty(PROPERTY_JWT_ENDPOINT, default)!!
+            String.getSystemProperty(PROPERTY_ZOOM_JWT_ENDPOINT, default)!!
     }
 
     private var dialog: ProgressDialog? = null

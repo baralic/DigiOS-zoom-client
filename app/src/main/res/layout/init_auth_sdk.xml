@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/background"
     android:id="@+id/root"
     android:gravity="center"
@@ -67,7 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:inputType="text"
+            android:inputType="textPersonName"
             android:hint="@string/login_username_hint"
             android:importantForAutofill="no"
             android:nextFocusLeft="@id/edit_join_number"
@@ -139,15 +140,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
-        android:background="@color/zm_red"
         android:focusable="false"
         android:gravity="center"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:visibility="gone">
 
         <ProgressBar
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleSmall"
+            style="?android:attr/progressBarStyleLargeInverse"
+            android:progressTint="@color/primary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -155,7 +156,6 @@
             android:id="@+id/txtConnecting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
             android:text="@string/login_loading_label" />
     </LinearLayout>
 </LinearLayout>
