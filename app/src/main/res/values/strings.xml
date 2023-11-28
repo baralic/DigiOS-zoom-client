@@ -33,9 +33,13 @@
     <string name="login_username_hint">Username</string>
     <string name="login_meeting_id_hint">Meeting ID</string>
     <string name="login_zak_hint">Input zoom meeting token(option)</string>
+    <string name="login_meeting_password_hint">Meeting password</string>
+    <string name="login_meeting_password_label">Password</string>
     <string name="login_remember_me_label">Remember me</string>
     <string name="login_join_label">Join</string>
     <string name="login_settings_label">Settings</string>
     <string name="login_return_meeting_label">Return Meeting</string>
     <string name="login_loading_label">Logining…</string>
+
+
 </resources>

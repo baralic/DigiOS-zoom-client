@@ -1,5 +1,7 @@
 package us.zoom.sdksample.inmeetingfunction.customizedmeetingui;
 
+import static us.zoom.sdk.MobileRTCSDKError.SDKERR_SUCCESS;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -105,10 +107,10 @@ import us.zoom.sdksample.ui.BreakoutRoomsAdminActivity;
 import us.zoom.sdksample.ui.InitAuthSDKActivity;
 import us.zoom.sdksample.ui.LoginUserStartJoinMeetingActivity;
 import us.zoom.sdksample.ui.UIUtil;
+import us.zoom.sdksample.util.Constants;
+import us.zoom.sdksample.util.KeyboardFocusChangeListener;
 
-import static us.zoom.sdk.MobileRTCSDKError.SDKERR_SUCCESS;
-
-public class MyMeetingActivity extends FragmentActivity implements View.OnClickListener, MeetingVideoCallback.VideoEvent,
+public class MyMeetingActivity extends FragmentActivity implements Constants.SysProperty, View.OnClickListener, MeetingVideoCallback.VideoEvent,
         MeetingAudioCallback.AudioEvent, MeetingShareCallback.ShareEvent,
         MeetingUserCallback.UserEvent, MeetingCommonCallback.CommonEvent, SmsListener, BOEventCallback.BOEvent, EmojiReactionCallback.EmojiReactionEvent {
 
@@ -202,6 +204,10 @@ public class MyMeetingActivity extends FragmentActivity implements View.OnClickL
     private RawDataRender localShareRender;
 
     private static final boolean ENABLE_SHOW_LOCAL_SHARE_CONTENT = false;
+
+    private final KeyboardFocusChangeListener focusChangeListener = new KeyboardFocusChangeListener(
+            new Integer[]{R.id.edit_pwd, R.id.edit_name}
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -973,46 +979,46 @@ public class MyMeetingActivity extends FragmentActivity implements View.OnClickL
 
     Dialog builder;
 
-    private void showPsswordDialog(final boolean needPassword, final boolean needDisplayName, final InMeetingEventHandler handler) {
+    private void showPasswordDialog(
+            final boolean needPassword,
+            final boolean needDisplayName,
+            final InMeetingEventHandler handler
+    ) {
         if (null != builder) {
             builder.dismiss();
         }
-        builder = new Dialog(this, us.zoom.videomeetings.R.style.ZMDialog);
+        builder = new Dialog(this, R.style.DigiOsZoomDialog);
         builder.setTitle("Need password or displayName");
         builder.setContentView(R.layout.layout_input_password_name);
 
         final EditText pwd = builder.findViewById(R.id.edit_pwd);
         final EditText name = builder.findViewById(R.id.edit_name);
+        pwd.setOnFocusChangeListener(focusChangeListener);
+        name.setOnFocusChangeListener(focusChangeListener);
+
         builder.findViewById(R.id.layout_pwd).setVisibility(needPassword ? View.VISIBLE : View.GONE);
         builder.findViewById(R.id.layout_name).setVisibility(needDisplayName ? View.VISIBLE : View.GONE);
 
-        builder.findViewById(R.id.btn_leave).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                builder.dismiss();
-                handler.setMeetingNamePassword("","",true);
-            }
+        builder.findViewById(R.id.btn_leave).setOnClickListener(view -> {
+            builder.dismiss();
+            handler.setMeetingNamePassword("","",true);
         });
-        builder.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String password = pwd.getText().toString();
-                String userName = name.getText().toString();
-                if (needPassword && TextUtils.isEmpty(password) || (needDisplayName && TextUtils.isEmpty(userName))) {
-                    builder.dismiss();
-                    onMeetingNeedPasswordOrDisplayName(needPassword, needDisplayName, handler);
-                    return;
-                }
+        builder.findViewById(R.id.btn_ok).setOnClickListener(view -> {
+            String password = pwd.getText().toString();
+            String userName = name.getText().toString();
+            if (needPassword && TextUtils.isEmpty(password) || (needDisplayName && TextUtils.isEmpty(userName))) {
                 builder.dismiss();
-                handler.setMeetingNamePassword(password, userName,false);
+                onMeetingNeedPasswordOrDisplayName(needPassword, needDisplayName, handler);
+                return;
             }
+            builder.dismiss();
+            handler.setMeetingNamePassword(password, userName,false);
         });
         builder.setCancelable(false);
         builder.setCanceledOnTouchOutside(false);
         builder.show();
         pwd.requestFocus();
     }
-
 
     private void updateVideoView(List<Long> userList, int action) {
         if (currentLayoutType == LAYOUT_TYPE_LIST_VIDEO || currentLayoutType == LAYOUT_TYPE_VIEW_SHARE) {
@@ -1364,7 +1370,13 @@ public class MyMeetingActivity extends FragmentActivity implements View.OnClickL
 
     @Override
     public void onMeetingNeedPasswordOrDisplayName(boolean needPassword, boolean needDisplayName, InMeetingEventHandler handler) {
-        showPsswordDialog(needPassword, needDisplayName, handler);
+        String password = getString(Constants.SysProperty.PROPERTY_ZOOM_PASSWORD, "");
+        if (password == null || password.isEmpty()) {
+            showPasswordDialog(needPassword, needDisplayName, handler);
+        } else {
+            String username = getString(Constants.SysProperty.PROPERTY_ZOOM_PASSWORD, "Endava_Demo");
+            handler.setMeetingNamePassword(password, username,false);
+        }
     }
 
     @Override
