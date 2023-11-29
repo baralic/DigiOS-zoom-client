@@ -54,6 +54,8 @@ dependencies {
     implementation project(':commonlib')
     implementation project(':mobilertc')
     implementation 'androidx.core:core-ktx:1.8.0'
+    implementation files('../libs/launcher-debug.aar')
+    implementation files('../libs/unityLibrary-debug.aar')
 }
 
 configurations.all {

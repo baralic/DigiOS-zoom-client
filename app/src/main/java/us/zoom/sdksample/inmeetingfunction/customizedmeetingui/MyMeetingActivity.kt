@@ -35,6 +35,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.unity3d.player.UnityPlayer
 import us.zoom.sdk.BOControllerError
 import us.zoom.sdk.IBOAdmin
 import us.zoom.sdk.IBOAttendee
@@ -49,6 +50,8 @@ import us.zoom.sdk.IZoomRetrieveSMSVerificationCodeHandler
 import us.zoom.sdk.IZoomSDKVideoRawDataDelegate
 import us.zoom.sdk.IZoomSDKVideoRawDataDelegate.UserRawDataStatus
 import us.zoom.sdk.IZoomVerifySMSVerificationCodeHandler
+import us.zoom.sdk.InMeetingChatController
+import us.zoom.sdk.InMeetingChatMessage
 import us.zoom.sdk.InMeetingEventHandler
 import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscriptionLanguage
 import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscriptionListener
@@ -161,6 +164,7 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var mVideoListView: RecyclerView
     private lateinit var localShareContentView: MobileRTCVideoView
     private lateinit var meetingOptionBar: MeetingOptionBar
+    private lateinit var mUnityPlayer: UnityPlayer
 
     private lateinit var mDefaultVideoViewMgr: MobileRTCVideoViewManager
     private lateinit var meetingAudioHelper: MeetingAudioHelper
@@ -175,27 +179,15 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var mAdapter: AttenderVideoAdapter
     private lateinit var gestureDetector: GestureDetector
     private lateinit var localShareRender: RawDataRender
+    private lateinit var mInMeetingChatController: InMeetingChatController
 
     private val focusChangeListener = KeyboardFocusChangeListener(
         arrayOf(R.id.edit_pwd, R.id.edit_name)
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        // let onConfigurationChanged to be called
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+    fun buildUi() {
         mMeetingService = mZoomSDK.meetingService
         mInMeetingService = mZoomSDK.inMeetingService
-
-        intent.extras?.let {
-            from = it.getInt("from")
-        }
         meetingAudioHelper = MeetingAudioHelper(audioCallBack)
         meetingVideoHelper = MeetingVideoHelper(this, videoCallBack)
         meetingShareHelper = MeetingShareHelper(this, shareCallBack)
@@ -218,6 +210,7 @@ open class MyMeetingActivity : FragmentActivity(),
         mDefaultVideoView = mNormalSenceView.findViewById(R.id.videoView)
         customShareView = mNormalSenceView.findViewById(R.id.custom_share_view)
         remoteControlHelper = MeetingRemoteControlHelper(customShareView)
+        mInMeetingChatController = mInMeetingService.inMeetingChatController
         mMeetingVideoView.addView(
             mNormalSenceView,
             FrameLayout.LayoutParams(
@@ -244,6 +237,24 @@ open class MyMeetingActivity : FragmentActivity(),
         mBtnJoinBo.setOnClickListener(this)
         mBtnRequestHelp.setOnClickListener(this)
         refreshToolbar()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // let onConfigurationChanged to be called
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        intent.extras?.let {
+            from = it.getInt("from")
+        }
+        mUnityPlayer = UnityPlayer(this)
+        buildUi()
+
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -1160,6 +1171,22 @@ open class MyMeetingActivity : FragmentActivity(),
     override fun onMeetingUserJoin(userList: List<Long>) {
         checkShowVideoLayout(false)
         updateVideoView(userList, 1)
+    }
+
+    override fun onChatMessageReceived(iMeetingChatMessage: InMeetingChatMessage?) {
+        Log.e(TAG,"${iMeetingChatMessage?.content}")
+        if(iMeetingChatMessage?.content == "#openvaia"){
+            mUnityPlayer.windowFocusChanged(true)
+            mUnityPlayer.requestFocus()
+            UnityPlayer.UnitySendMessage("DataExchanger", "ShowMessage", "${iMeetingChatMessage.content}")
+            mUnityPlayer.resume()
+            setContentView(mUnityPlayer)
+        } else if(iMeetingChatMessage?.content == "#closevaia"){
+            mUnityPlayer.windowFocusChanged(false)
+            mUnityPlayer.pause()
+            buildUi()
+
+        }
     }
 
     override fun onMeetingUserLeave(userList: List<Long>) {

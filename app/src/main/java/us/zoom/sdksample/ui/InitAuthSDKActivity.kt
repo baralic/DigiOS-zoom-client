@@ -1,9 +1,13 @@
 package us.zoom.sdksample.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.nfc.Tag
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -11,7 +15,10 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.core.view.isVisible
+import com.unity3d.player.UnityPlayer
 import us.zoom.sdk.InMeetingNotificationHandle
 import us.zoom.sdk.JoinMeetingOptions
 import us.zoom.sdk.JoinMeetingParams
@@ -34,6 +41,8 @@ import us.zoom.sdksample.inmeetingfunction.zoommeetingui.CustomNewZoomUIActivity
 import us.zoom.sdksample.inmeetingfunction.zoommeetingui.ZoomMeetingUISettingHelper
 import us.zoom.sdksample.startjoinmeeting.UserLoginCallback
 import us.zoom.sdksample.startjoinmeeting.UserLoginCallback.ZoomDemoAuthenticationListener
+import us.zoom.sdksample.ui.InitAuthSDKActivity.Companion.TAG
+import us.zoom.sdksample.ui.InitAuthSDKActivity.Companion.showMeetingTokenUI
 import us.zoom.sdksample.util.Constants
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.Constants.hideSystemBars
@@ -54,6 +63,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
     private lateinit var mProgressPanel: View
     private var isResumed = false
     private lateinit var prefs: SharedPreferences
+    private lateinit var mUnityPlayer: UnityPlayer
 
     private var isAutoJoin: Boolean = false
 
@@ -68,6 +78,15 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
             return
         }
 
+        mUnityPlayer = UnityPlayer(this)
+        returnButton = Button(this)
+        returnButton?.isActivated = false
+        returnButton?.isVisible = false
+        returnButton?.setOnClickListener {
+            Log.d(TAG, "Button pressed")
+            mUnityPlayer.pause()
+            setContentView(R.layout.init_auth_sdk)
+        }
         setContentView(R.layout.init_auth_sdk)
         prefs = getPreferences(this)
         prepareMeeting(intent, prefs)
@@ -262,6 +281,16 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         saveUserInput()
     }
 
+    fun onClickUnity(view: View?) {
+        mUnityPlayer.windowFocusChanged(true)
+        mUnityPlayer.requestFocus()
+        UnityPlayer.UnitySendMessage("DataExchanger", "ShowMessage", "ThisMessageWasPassedFromAndroid")
+        mUnityPlayer.resume()
+        setContentView(mUnityPlayer)
+        mUnityPlayer.removeView(returnButton!!)
+        mUnityPlayer.addView(returnButton!!,FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+    }
+
     private fun showProgressPanel(show: Boolean) {
         if (show) {
             showSettings(false)
@@ -436,7 +465,19 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
     }
 
     companion object {
-        private const val TAG = "DigiOS_Zoom"
+        const val TAG = "DigiOS_Zoom"
+        @SuppressLint("StaticFieldLeak")
+        var returnButton: Button? = null
+
+        @JvmStatic
+        fun setDataFromUnity(string: String) {
+            Log.d("Init", "Passed Data to android : $string")
+            returnButton?.let {
+                it.isActivated = true
+                it.isVisible = true
+                it.requestFocus()
+            }
+        }
 
         @JvmField
         var showMeetingTokenUI = false
