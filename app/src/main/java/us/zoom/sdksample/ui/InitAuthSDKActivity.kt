@@ -36,9 +36,9 @@ import us.zoom.sdksample.startjoinmeeting.UserLoginCallback
 import us.zoom.sdksample.startjoinmeeting.UserLoginCallback.ZoomDemoAuthenticationListener
 import us.zoom.sdksample.util.Constants
 import us.zoom.sdksample.util.Constants.SysProperty
-import us.zoom.sdksample.util.Constants.hideSystemBars
 import us.zoom.sdksample.util.KeyboardFocusChangeListener
 import us.zoom.sdksample.util.getSystemProperty
+import us.zoom.sdksample.util.hideSystemBars
 
 class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallback,
     JwtFetcher.Callback, Constants.Preferences, SysProperty, MeetingServiceListener,
@@ -59,8 +59,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        hideSystemBars(this)
+        hideSystemBars()
 
         if (mZoomSDK.isLoggedIn) {
             finish()
@@ -248,6 +247,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         mZoomSDK.smsService.enableZoomAuthRealNameMeetingUIShown(
             !mZoomSDK.meetingSettingsHelper.isCustomizedMeetingUIEnabled
         )
+        saveUserInput()
         val number = numberEdit.getText().toString()
         val name = nameEdit.getText().toString()
         val zoomMeetingToken = meetingTokenEdit.getText().toString()
@@ -259,7 +259,6 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         mZoomSDK.meetingService.joinMeetingWithParams(
             this, params, ZoomMeetingUISettingHelper.getJoinMeetingOptions()
         )
-        saveUserInput()
     }
 
     private fun showProgressPanel(show: Boolean) {

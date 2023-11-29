@@ -6,5 +6,5 @@
     <color name="secondary">#FFFFFFFF</color>
     <color name="secondaryVariant">#FFCCCCCC</color>
     <color name="secondaryDark">#FF000000</color>
-    <color name="secondaryDarkVariant">#707070</color>
+    <color name="secondaryDarkVariant">#575757</color>
 </resources>

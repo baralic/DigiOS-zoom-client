@@ -2,12 +2,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_view"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:descendantFocusability="afterDescendants">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/background"
         android:gravity="center_horizontal">
+
         <FrameLayout
             android:id="@+id/meetingVideoView"
             android:layout_width="match_parent"
@@ -34,7 +37,6 @@
                 android:layout_gravity="bottom"
                 android:visibility="gone" />
 
-
             <us.zoom.sdk.MobileRTCVideoView
                 android:id="@+id/local_share_content_view"
                 android:layout_width="200dp"
@@ -43,16 +45,15 @@
                 android:visibility="gone" />
 
             <us.zoom.sdksample.inmeetingfunction.customizedmeetingui.rawdata.RawDataRender
+                android:id="@+id/local_share_content_view_render"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:layout_gravity="top|left"
-                android:id="@+id/local_share_content_view_render"
-                android:visibility="gone" >
+                android:visibility="gone">
 
             </us.zoom.sdksample.inmeetingfunction.customizedmeetingui.rawdata.RawDataRender>
 
         </FrameLayout>
-
 
         <us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.VideoListLayout
             android:id="@+id/videoListLayout"
@@ -60,117 +61,112 @@
             android:layout_height="wrap_content"
             android:layout_alignWithParentIfMissing="true"
             android:layout_alignParentBottom="true"
+            android:background="@color/background"
             android:gravity="center"
-            android:orientation="vertical">
-
-        </us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.VideoListLayout>
-
-
+            android:orientation="vertical"/>
     </RelativeLayout>
 
+    <Button
+        android:id="@+id/joinBreakoutButton"
+        style="@style/Basic.ButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="100dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="3dp"
+        android:text="@string/breakout_room_join"
+        android:textSize="11sp"
+        android:visibility="gone" />
 
     <Button
-        android:id="@+id/btn_join_bo"
+        android:id="@+id/requestHelpButton"
+        style="@style/Basic.ButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="100dp"
-        android:text="Join Bo"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_request_help"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="100dp"
-        android:text="Request for Help"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="3dp"
+        android:text="@string/breakout_room_help"
+        android:textSize="11sp"
         android:visibility="gone" />
 
     <TextView
-        android:id="@+id/connectingTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_gravity="top|left"
-        android:gravity="center"
-        android:text="Connecting..."
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/waitJoinView"
+        android:id="@+id/connectingLabel"
+        style="@style/MessageLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Wait host to start this meeting..."
+        android:text="@string/connecting_label"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/waitingRoom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Please wait, the meeting host will let you in soon."
-        android:visibility="gone" />
-
-    <FrameLayout
+    <include
+        android:id="@+id/progressPanel"
+        layout="@layout/layout_progress"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#00000000"></FrameLayout>
-
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
     <us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingOptionBar
-        android:id="@+id/meeting_option_contain"
+        android:id="@+id/meetingOptionBar"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:focusedByDefault="true"
+        android:descendantFocusability="afterDescendants"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible"></us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingOptionBar>
+        android:visibility="invisible" />
 
+    <!-- TODO: Not needed for demo -->
     <ImageView
-        android:id="@+id/iv_view_apps"
+        android:id="@+id/appsView"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:layout_marginLeft="50dp"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="50dp"
-        android:visibility="gone"
-        android:src="@drawable/icon_view_apps" />
+        android:contentDescription="@null"
+        android:focusable="false"
+        android:src="@drawable/icon_view_apps"
+        android:visibility="gone" />
 
+    <!-- TODO: Not needed for demo -->
     <LinearLayout
-        android:id="@+id/layout_lans"
-        android:background="@drawable/zm_bg_float_gray"
+        android:id="@+id/langLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="100dp"
+        android:background="@drawable/zm_bg_float_gray"
         android:padding="2dp"
-        android:visibility="gone"
-        android:layout_marginTop="100dp">
+        android:visibility="gone">
 
         <Button
             android:id="@+id/btn_lan1"
+            style="@style/Basic.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="5dp"
+            android:layout_marginEnd="5dp"
             android:background="@drawable/selector_lans"
             android:padding="10dp"
             android:textColor="@color/lan_text_selector"
-            android:text="English"
-            android:textSize="18dp"
-            android:textStyle="bold"></Button>
-
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_lan2"
-            style="@style/ZMTextView.Small.OnGray"
+            style="@style/Basic.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selector_lans"
             android:focusable="true"
-            android:textColor="@color/lan_text_selector"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
-            android:textSize="18dp"
-            android:text="English"
-            android:textStyle="bold"></Button>
+            android:textColor="@color/lan_text_selector"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
-
 
 </FrameLayout>

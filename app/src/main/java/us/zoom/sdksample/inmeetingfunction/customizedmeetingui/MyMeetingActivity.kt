@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
@@ -112,8 +113,10 @@ import us.zoom.sdksample.ui.BreakoutRoomsAdminActivity
 import us.zoom.sdksample.ui.InitAuthSDKActivity
 import us.zoom.sdksample.ui.LoginUserStartJoinMeetingActivity
 import us.zoom.sdksample.ui.UIUtil.getBoNameUserNameByUserId
+import us.zoom.sdksample.util.Constants.Preferences
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.KeyboardFocusChangeListener
+import us.zoom.sdksample.util.hideSystemBars
 
 open class MyMeetingActivity : FragmentActivity(),
     View.OnClickListener,
@@ -125,56 +128,49 @@ open class MyMeetingActivity : FragmentActivity(),
     SmsListener,
     BOEvent,
     EmojiReactionEvent,
-    SysProperty {
+    SysProperty,
+    Preferences {
 
-    private var mZoomSDK: ZoomSDK = ZoomSDK.getInstance()
+    private lateinit var prefs: SharedPreferences
 
-    private var from = 0
-    private var currentLayoutType = -1
-    private val LAYOUT_TYPE_PREVIEW = 0
-    private val LAYOUT_TYPE_WAITHOST = 1
-    private val LAYOUT_TYPE_IN_WAIT_ROOM = 2
-    private val LAYOUT_TYPE_ONLY_MYSELF = 3
-    private val LAYOUT_TYPE_ONETOONE = 4
-    private val LAYOUT_TYPE_LIST_VIDEO = 5
-    private val LAYOUT_TYPE_VIEW_SHARE = 6
-    private val LAYOUT_TYPE_SHARING_VIEW = 7
-
-    private var mMeetingFailed = false
-
-    private var builder: Dialog? = null
-
-    private lateinit var mWaitJoinView: TextView
-    private lateinit var mWaitRoomView: TextView
-    private lateinit var mConnectingText: TextView
-    private lateinit var mBtnJoinBo: Button
-    private lateinit var mBtnRequestHelp: Button
+    private lateinit var waitingRoomView: ViewGroup
+    private lateinit var waitingRoomMessage: TextView
+    private lateinit var connectingLabel: TextView
+    private lateinit var joinBreakoutButton: Button
+    private lateinit var requestHelpButton: Button
+    private lateinit var appsView: ImageView
+    private lateinit var langLayout: View
     private lateinit var videoListLayout: LinearLayout
-    private lateinit var layout_lans: View
-    private lateinit var mDefaultVideoView: MobileRTCVideoView
+    private lateinit var defaultVideoView: MobileRTCVideoView
     private lateinit var mShareView: MobileRTCShareView
     private lateinit var mDrawingView: AnnotateToolbar
     private lateinit var mMeetingVideoView: FrameLayout
-    private lateinit var mViewApps: ImageView
     private lateinit var mNormalSenceView: View
     private lateinit var customShareView: CustomShareView
     private lateinit var mVideoListView: RecyclerView
     private lateinit var localShareContentView: MobileRTCVideoView
     private lateinit var meetingOptionBar: MeetingOptionBar
+    private lateinit var localShareRender: RawDataRender
 
-    private lateinit var mDefaultVideoViewMgr: MobileRTCVideoViewManager
+    private lateinit var attenderVideoAdapter: AttenderVideoAdapter
+    private lateinit var gestureDetector: GestureDetector
+
+    private val zoomSDK: ZoomSDK = ZoomSDK.getInstance()
+    private var meetingService: MeetingService? = null
+    private var defaultVideoViewManager: MobileRTCVideoViewManager? = null
+    private lateinit var inMeetingService: InMeetingService // @Nullable
+    private lateinit var smsService: SmsService // @Nullable
+
     private lateinit var meetingAudioHelper: MeetingAudioHelper
     private lateinit var meetingVideoHelper: MeetingVideoHelper
     private lateinit var meetingShareHelper: MeetingShareHelper
     private lateinit var remoteControlHelper: MeetingRemoteControlHelper
-    private lateinit var mMeetingService: MeetingService
-    private lateinit var mInMeetingService: InMeetingService
-    private lateinit var smsService: SmsService
-    private lateinit var mScreenInfoData: Intent
+    private lateinit var screenInfoData: Intent
 
-    private lateinit var mAdapter: AttenderVideoAdapter
-    private lateinit var gestureDetector: GestureDetector
-    private lateinit var localShareRender: RawDataRender
+    private var from = 0
+    private var currentLayoutType = -1
+    private var mMeetingFailed = false
+    private var builder: Dialog? = null
 
     private val focusChangeListener = KeyboardFocusChangeListener(
         arrayOf(R.id.edit_pwd, R.id.edit_name)
@@ -182,40 +178,43 @@ open class MyMeetingActivity : FragmentActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
+        hideSystemBars()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // let onConfigurationChanged to be called
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-        mMeetingService = mZoomSDK.meetingService
-        mInMeetingService = mZoomSDK.inMeetingService
+        meetingService = zoomSDK.meetingService
+        inMeetingService = zoomSDK.inMeetingService
 
-        intent.extras?.let {
-            from = it.getInt("from")
-        }
+        intent.extras?.let { from = it.getInt("from") }
         meetingAudioHelper = MeetingAudioHelper(audioCallBack)
         meetingVideoHelper = MeetingVideoHelper(this, videoCallBack)
         meetingShareHelper = MeetingShareHelper(this, shareCallBack)
-        registerListener()
-        setContentView(R.layout.my_meeting_layout)
         gestureDetector = GestureDetector(GestureDetectorListener())
-        meetingOptionBar = findViewById(R.id.meeting_option_contain)
-        meetingOptionBar.setCallBack(callBack)
-        mMeetingVideoView = findViewById(R.id.meetingVideoView)
-        mShareView = findViewById(R.id.sharingView)
+        registerZoomListener()
+
+        setContentView(R.layout.my_meeting_layout)
+        prefs = getPreferences(this)
+
+        waitingRoomView = findViewById(R.id.progressPanel)
+        waitingRoomMessage = waitingRoomView.findViewById(R.id.progressMessage)
+        connectingLabel = findViewById(R.id.connectingLabel)
+        appsView = findViewById(R.id.appsView)
+        joinBreakoutButton = findViewById(R.id.joinBreakoutButton)
+        requestHelpButton = findViewById(R.id.requestHelpButton)
+        meetingOptionBar = findViewById(R.id.meetingOptionBar)
         localShareContentView = findViewById(R.id.local_share_content_view)
         localShareRender = findViewById(R.id.local_share_content_view_render)
+        mMeetingVideoView = findViewById(R.id.meetingVideoView)
+        mShareView = findViewById(R.id.sharingView)
         mDrawingView = findViewById(R.id.drawingView)
-        mViewApps = findViewById(R.id.iv_view_apps)
-        mViewApps.setOnClickListener(this)
-        mWaitJoinView = findViewById(R.id.waitJoinView)
-        mWaitRoomView = findViewById(R.id.waitingRoom)
+
+        appsView.setOnClickListener(this)
+        joinBreakoutButton.setOnClickListener(this)
+        requestHelpButton.setOnClickListener(this)
+        meetingOptionBar.setCallBack(callBack)
+
         val inflater = layoutInflater
         mNormalSenceView = inflater.inflate(R.layout.layout_meeting_content_normal, null)
-        mDefaultVideoView = mNormalSenceView.findViewById(R.id.videoView)
+        defaultVideoView = mNormalSenceView.findViewById(R.id.videoView)
         customShareView = mNormalSenceView.findViewById(R.id.custom_share_view)
         remoteControlHelper = MeetingRemoteControlHelper(customShareView)
         mMeetingVideoView.addView(
@@ -225,24 +224,16 @@ open class MyMeetingActivity : FragmentActivity(),
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         )
-        mConnectingText = findViewById(R.id.connectingTxt)
-        mBtnJoinBo = findViewById(R.id.btn_join_bo)
-        mBtnRequestHelp = findViewById(R.id.btn_request_help)
+
         mVideoListView = findViewById(R.id.videoList)
         mVideoListView.bringToFront()
         videoListLayout = findViewById(R.id.videoListLayout)
-        layout_lans = findViewById(R.id.layout_lans)
+        langLayout = findViewById(R.id.langLayout)
         mVideoListView.setLayoutManager(
-            LinearLayoutManager(
-                this,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         )
-        mAdapter = AttenderVideoAdapter(this, windowManager.defaultDisplay.width, pinVideoListener)
-        mVideoListView.setAdapter(mAdapter)
-        mBtnJoinBo.setOnClickListener(this)
-        mBtnRequestHelp.setOnClickListener(this)
+        attenderVideoAdapter = AttenderVideoAdapter(this, windowManager.defaultDisplay.width, pinVideoListener)
+        mVideoListView.setAdapter(attenderVideoAdapter)
         refreshToolbar()
     }
 
@@ -250,7 +241,7 @@ open class MyMeetingActivity : FragmentActivity(),
         super.onNewIntent(intent)
     }
 
-    private var videoCallBack: VideoCallBack = object : VideoCallBack {
+    private val videoCallBack: VideoCallBack = object : VideoCallBack {
         override fun requestVideoPermission(): Boolean {
             return checkVideoPermission()
         }
@@ -259,7 +250,7 @@ open class MyMeetingActivity : FragmentActivity(),
             popupWindow.showAsDropDown(meetingOptionBar.switchCameraView, 0, 20)
         }
     }
-    private var audioCallBack: AudioCallBack = object : AudioCallBack {
+    private val audioCallBack: AudioCallBack = object : AudioCallBack {
         override fun requestAudioPermission(): Boolean {
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(
@@ -276,9 +267,9 @@ open class MyMeetingActivity : FragmentActivity(),
             meetingOptionBar.updateAudioButton()
         }
     }
-    var shareCallBack: MeetingShareUICallBack = object : MeetingShareUICallBack {
+    private val shareCallBack: MeetingShareUICallBack = object : MeetingShareUICallBack {
         override fun onMySharStart(start: Boolean) {
-            mDefaultVideoView.post {
+            defaultVideoView.post {
                 if (!start) {
                     showLocalShareContent(false)
                 } else {
@@ -327,23 +318,23 @@ open class MyMeetingActivity : FragmentActivity(),
         if (currentLayoutType == LAYOUT_TYPE_VIEW_SHARE || currentLayoutType == LAYOUT_TYPE_SHARING_VIEW) {
             return@ItemClickListener
         }
-        mDefaultVideoViewMgr.removeAllVideoUnits()
+        defaultVideoViewManager?.removeAllVideoUnits()
         val renderInfo = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
-        mDefaultVideoViewMgr.addAttendeeVideoUnit(userId, renderInfo)
+        defaultVideoViewManager?.addAttendeeVideoUnit(userId, renderInfo)
         currentPinUser = userId
     }
 
     override fun onClick(v: View) {
         val id = v.id
         when (id) {
-            R.id.btn_join_bo -> {
-                val boController = mInMeetingService.inMeetingBOController
+            R.id.joinBreakoutButton -> {
+                val boController = inMeetingService.inMeetingBOController
                 val boAttendee = boController.boAttendeeHelper
                 boAttendee?.joinBo()
             }
 
-            R.id.btn_request_help -> attendeeRequestHelp()
-            R.id.iv_view_apps -> showApps()
+            R.id.requestHelpButton -> attendeeRequestHelp()
+            R.id.appsView -> showApps()
         }
     }
 
@@ -366,7 +357,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
     override fun onEmojiReactionReceived(senderId: Long, type: SDKEmojiReactionType) {
         val emojiParams = EmojiParams(senderId, type)
-        mAdapter.setEmojiUser(emojiParams)
+        attenderVideoAdapter.setEmojiUser(emojiParams)
     }
 
     override fun onEmojiReactionReceivedInWebinar(type: SDKEmojiReactionType) {}
@@ -386,7 +377,7 @@ open class MyMeetingActivity : FragmentActivity(),
                     return true
                 }
             }
-            if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
+            if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
                 meetingOptionBar.hideOrShowToolbar(meetingOptionBar.isShowing)
             }
             return true
@@ -399,17 +390,19 @@ open class MyMeetingActivity : FragmentActivity(),
     }
 
     private fun refreshToolbar() {
-        if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
-            mConnectingText.visibility = View.GONE
-            meetingOptionBar.updateMeetingNumber(mInMeetingService.currentMeetingNumber.toString() + "")
-            meetingOptionBar.updateMeetingPassword(mInMeetingService.meetingPassword)
+        if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
+            connectingLabel.visibility = View.GONE
+            meetingOptionBar.updateMeetingNumber(inMeetingService.currentMeetingNumber.toString() + "")
+            meetingOptionBar.updateMeetingPassword(inMeetingService.meetingPassword)
             meetingOptionBar.refreshToolbar()
-            mViewApps.setVisibility(View.VISIBLE)
+
+            // TODO: Not needed for demo
+            //  appsView.setVisibility(View.VISIBLE)
         } else {
-            if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_CONNECTING) {
-                mConnectingText.visibility = View.VISIBLE
+            if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_CONNECTING) {
+                connectingLabel.visibility = View.VISIBLE
             } else {
-                mConnectingText.visibility = View.GONE
+                connectingLabel.visibility = View.GONE
             }
             meetingOptionBar.hideOrShowToolbar(true)
         }
@@ -418,7 +411,7 @@ open class MyMeetingActivity : FragmentActivity(),
     private fun updateAnnotationBar() {
         if (mCurShareUserId > 0 && !isMySelfWebinarAttendee) {
             if (meetingShareHelper.isSenderSupportAnnotation(mCurShareUserId)) {
-                if (mInMeetingService.isMyself(mCurShareUserId) && !meetingShareHelper.isSharingScreen) {
+                if (inMeetingService.isMyself(mCurShareUserId) && !meetingShareHelper.isSharingScreen) {
                     if (meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE || meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE_WITH_AUDIO) {
                         mDrawingView.visibility = View.GONE
                     } else {
@@ -443,7 +436,7 @@ open class MyMeetingActivity : FragmentActivity(),
         if (!checkVideoPermission()) {
             return
         }
-        mDefaultVideoViewMgr = mDefaultVideoView.videoViewManager
+        defaultVideoViewManager = defaultVideoView.videoViewManager
         val newLayoutType = newVideoMeetingLayout
         if (currentLayoutType != newLayoutType || forceRefresh) {
             removeOldLayout(currentLayoutType)
@@ -456,11 +449,11 @@ open class MyMeetingActivity : FragmentActivity(),
     private val newVideoMeetingLayout: Int
         get() {
             val newLayoutType: Int
-            if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_WAITINGFORHOST) {
+            if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_WAITINGFORHOST) {
                 newLayoutType = LAYOUT_TYPE_WAITHOST
                 return newLayoutType
             }
-            if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_IN_WAITING_ROOM) {
+            if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_IN_WAITING_ROOM) {
                 newLayoutType = LAYOUT_TYPE_IN_WAIT_ROOM
                 return newLayoutType
             }
@@ -469,7 +462,7 @@ open class MyMeetingActivity : FragmentActivity(),
             } else if (meetingShareHelper.isSharingOut && !meetingShareHelper.isSharingScreen) {
                 newLayoutType = LAYOUT_TYPE_SHARING_VIEW
             } else {
-                val userlist = mInMeetingService.inMeetingUserList
+                val userlist = inMeetingService.inMeetingUserList
                 var userCount = 0
                 if (userlist != null) {
                     userCount = userlist.size
@@ -477,8 +470,8 @@ open class MyMeetingActivity : FragmentActivity(),
                 if (userCount > 1) {
                     val preCount = userCount
                     for (i in 0 until preCount) {
-                        val userInfo = mInMeetingService.getUserInfoById(userlist[i])
-                        if (mInMeetingService.isWebinarMeeting) {
+                        val userInfo = inMeetingService.getUserInfoById(userlist[i])
+                        if (inMeetingService.isWebinarMeeting) {
                             if (userInfo != null && userInfo.inMeetingUserRole == InMeetingUserInfo.InMeetingUserRole.USERROLE_ATTENDEE) {
                                 userCount--
                             }
@@ -486,8 +479,8 @@ open class MyMeetingActivity : FragmentActivity(),
                     }
                 }
                 newLayoutType = when (userCount) {
-                    0 ->  LAYOUT_TYPE_PREVIEW
-                    1 ->  LAYOUT_TYPE_ONLY_MYSELF
+                    0 -> LAYOUT_TYPE_PREVIEW
+                    1 -> LAYOUT_TYPE_ONLY_MYSELF
                     else -> LAYOUT_TYPE_LIST_VIDEO
                 }
             }
@@ -497,20 +490,24 @@ open class MyMeetingActivity : FragmentActivity(),
     private fun removeOldLayout(type: Int) {
         when (type) {
             LAYOUT_TYPE_WAITHOST -> {
-                mWaitJoinView.visibility = View.GONE
+                waitingRoomView.visibility = View.GONE
                 mMeetingVideoView.visibility = View.VISIBLE
             }
+
             LAYOUT_TYPE_IN_WAIT_ROOM -> {
-                mWaitRoomView.visibility = View.GONE
+                waitingRoomView.visibility = View.GONE
                 mMeetingVideoView.visibility = View.VISIBLE
             }
+
             LAYOUT_TYPE_PREVIEW, LAYOUT_TYPE_ONLY_MYSELF, LAYOUT_TYPE_ONETOONE -> {
-                mDefaultVideoViewMgr.removeAllVideoUnits()
+                defaultVideoViewManager?.removeAllVideoUnits()
             }
+
             LAYOUT_TYPE_LIST_VIDEO, LAYOUT_TYPE_VIEW_SHARE -> {
-                mDefaultVideoViewMgr.removeAllVideoUnits()
-                mDefaultVideoView.setGestureDetectorEnabled(false)
+                defaultVideoViewManager?.removeAllVideoUnits()
+                defaultVideoView.setGestureDetectorEnabled(false)
             }
+
             LAYOUT_TYPE_SHARING_VIEW -> {
                 mShareView.visibility = View.GONE
                 showLocalShareContent(false)
@@ -525,32 +522,41 @@ open class MyMeetingActivity : FragmentActivity(),
     private fun addNewLayout(type: Int) {
         when (type) {
             LAYOUT_TYPE_WAITHOST -> {
-                mWaitJoinView.visibility = View.VISIBLE
+                waitingRoomView.visibility = View.VISIBLE
+                waitingRoomMessage.setText(R.string.waiting_room_meeting_not_started)
                 refreshToolbar()
                 mMeetingVideoView.visibility = View.GONE
             }
+
             LAYOUT_TYPE_IN_WAIT_ROOM -> {
-                mWaitRoomView.visibility = View.VISIBLE
+                waitingRoomView.visibility = View.VISIBLE
+                waitingRoomMessage.setText(R.string.waiting_room_meeting_not_admitted)
                 videoListLayout.visibility = View.GONE
                 refreshToolbar()
                 mMeetingVideoView.visibility = View.GONE
                 mDrawingView.visibility = View.GONE
             }
+
             LAYOUT_TYPE_PREVIEW -> {
                 showPreviewLayout()
             }
+
             LAYOUT_TYPE_ONLY_MYSELF -> {
                 showOnlyMeLayout()
             }
+
             LAYOUT_TYPE_ONETOONE -> {
                 showOne2OneLayout()
             }
+
             LAYOUT_TYPE_LIST_VIDEO -> {
                 showVideoListLayout()
             }
+
             LAYOUT_TYPE_VIEW_SHARE -> {
                 showViewShareLayout()
             }
+
             LAYOUT_TYPE_SHARING_VIEW -> {
                 showSharingViewOutLayout()
             }
@@ -559,46 +565,46 @@ open class MyMeetingActivity : FragmentActivity(),
 
     private fun showPreviewLayout() {
         val renderInfo1 = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
-        mDefaultVideoView.visibility = View.VISIBLE
-        mDefaultVideoViewMgr.addPreviewVideoUnit(renderInfo1)
+        defaultVideoView.visibility = View.VISIBLE
+        defaultVideoViewManager?.addPreviewVideoUnit(renderInfo1)
         videoListLayout.visibility = View.GONE
     }
 
     private fun showOnlyMeLayout() {
-        mDefaultVideoView.visibility = View.VISIBLE
+        defaultVideoView.visibility = View.VISIBLE
         videoListLayout.visibility = View.GONE
         val renderInfo = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
-        val myUserInfo = mInMeetingService.myUserInfo
+        val myUserInfo = inMeetingService?.myUserInfo
         if (myUserInfo != null) {
-            mDefaultVideoViewMgr.removeAllVideoUnits()
+            defaultVideoViewManager?.removeAllVideoUnits()
             if (isMySelfWebinarAttendee) {
                 if (mCurShareUserId > 0) {
-                    mDefaultVideoViewMgr.addShareVideoUnit(mCurShareUserId, renderInfo)
+                    defaultVideoViewManager?.addShareVideoUnit(mCurShareUserId, renderInfo)
                 } else {
-                    mDefaultVideoViewMgr.addActiveVideoUnit(renderInfo)
+                    defaultVideoViewManager?.addActiveVideoUnit(renderInfo)
                 }
             } else {
-                mDefaultVideoViewMgr.addAttendeeVideoUnit(myUserInfo.userId, renderInfo)
+                defaultVideoViewManager?.addAttendeeVideoUnit(myUserInfo.userId, renderInfo)
             }
         }
     }
 
     private fun showOne2OneLayout() {
-        mDefaultVideoView.visibility = View.VISIBLE
+        defaultVideoView.visibility = View.VISIBLE
         videoListLayout.visibility = View.VISIBLE
         val renderInfo = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
         //options.aspect_mode = MobileRTCVideoUnitAspectMode.VIDEO_ASPECT_PAN_AND_SCAN;
-        mDefaultVideoViewMgr.addActiveVideoUnit(renderInfo)
-        mAdapter.setUserList(mInMeetingService.inMeetingUserList)
-        mAdapter.notifyDataSetChanged()
+        defaultVideoViewManager?.addActiveVideoUnit(renderInfo)
+        attenderVideoAdapter.setUserList(inMeetingService?.inMeetingUserList)
+        attenderVideoAdapter.notifyDataSetChanged()
     }
 
     private fun showVideoListLayout() {
         val renderInfo = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
         //options.aspect_mode = MobileRTCVideoUnitAspectMode.VIDEO_ASPECT_PAN_AND_SCAN;
-        mDefaultVideoViewMgr.addActiveVideoUnit(renderInfo)
+        defaultVideoViewManager?.addActiveVideoUnit(renderInfo)
         videoListLayout.visibility = View.VISIBLE
-        updateAttendeeVideos(mInMeetingService.inMeetingUserList, 0)
+        updateAttendeeVideos(inMeetingService.inMeetingUserList, 0)
     }
 
     private val sdkRenderer = ZoomSDKRenderer(object : IZoomSDKVideoRawDataDelegate {
@@ -621,7 +627,7 @@ open class MyMeetingActivity : FragmentActivity(),
             localShareContentView.visibility = View.INVISIBLE
             sdkRenderer.unSubscribe()
         } else {
-            if (mInMeetingService.isMyself(mCurShareUserId)) {
+            if (inMeetingService.isMyself(mCurShareUserId)) {
                 sdkRenderer.unSubscribe()
                 val error =
                     sdkRenderer.subscribe(mCurShareUserId, ZoomSDKRawDataType.RAW_DATA_TYPE_SHARE)
@@ -644,8 +650,8 @@ open class MyMeetingActivity : FragmentActivity(),
         if (meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE || meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE_WITH_AUDIO) {
             return
         }
-        mAdapter.setUserList(null)
-        mAdapter.notifyDataSetChanged()
+        attenderVideoAdapter.setUserList(null)
+        attenderVideoAdapter.notifyDataSetChanged()
         videoListLayout.visibility = View.GONE
         mMeetingVideoView.visibility = View.GONE
         mShareView.visibility = View.VISIBLE
@@ -655,62 +661,64 @@ open class MyMeetingActivity : FragmentActivity(),
     private fun updateAttendeeVideos(userlist: List<Long>, action: Int) {
         when (action) {
             0 -> {
-                mAdapter.setUserList(userlist)
-                mAdapter.notifyDataSetChanged()
+                attenderVideoAdapter.setUserList(userlist)
+                attenderVideoAdapter.notifyDataSetChanged()
             }
+
             1 -> {
-                mAdapter.addUserList(userlist)
+                attenderVideoAdapter.addUserList(userlist)
             }
+
             else -> {
-                val userId = mAdapter.getSelectedUserId()
+                val userId = attenderVideoAdapter.getSelectedUserId()
                 if (userlist.contains(userId)) {
-                    val inMeetingUserList = mInMeetingService.inMeetingUserList
+                    val inMeetingUserList = inMeetingService.inMeetingUserList
                     if (inMeetingUserList.size > 0) {
-                        mDefaultVideoViewMgr.removeAllVideoUnits()
+                        defaultVideoViewManager?.removeAllVideoUnits()
                         val renderInfo = MobileRTCVideoUnitRenderInfo(0, 0, 100, 100)
-                        mDefaultVideoViewMgr.addAttendeeVideoUnit(inMeetingUserList[0], renderInfo)
+                        defaultVideoViewManager?.addAttendeeVideoUnit(inMeetingUserList[0], renderInfo)
                     }
                 }
-                mAdapter.removeUserList(userlist)
+                attenderVideoAdapter.removeUserList(userlist)
             }
         }
     }
 
     private fun showViewShareLayout() {
         if (!isMySelfWebinarAttendee) {
-            mDefaultVideoView.visibility = View.VISIBLE
-            mDefaultVideoView.setOnClickListener(null)
-            mDefaultVideoView.setGestureDetectorEnabled(true)
-            val shareUserId = mInMeetingService.activeShareUserID()
+            defaultVideoView.visibility = View.VISIBLE
+            defaultVideoView.setOnClickListener(null)
+            defaultVideoView.setGestureDetectorEnabled(true)
+            val shareUserId = inMeetingService.activeShareUserID()
             val renderInfo1 = MobileRTCRenderInfo(0, 0, 100, 100)
-            mDefaultVideoViewMgr.addShareVideoUnit(shareUserId, renderInfo1)
-            updateAttendeeVideos(mInMeetingService.inMeetingUserList, 0)
-            customShareView.setMobileRTCVideoView(mDefaultVideoView)
+            defaultVideoViewManager?.addShareVideoUnit(shareUserId, renderInfo1)
+            updateAttendeeVideos(inMeetingService.inMeetingUserList, 0)
+            customShareView.setMobileRTCVideoView(defaultVideoView)
             remoteControlHelper.refreshRemoteControlStatus()
         } else {
-            mDefaultVideoView.visibility = View.VISIBLE
-            mDefaultVideoView.setOnClickListener(null)
-            mDefaultVideoView.setGestureDetectorEnabled(true)
-            val shareUserId = mInMeetingService.activeShareUserID()
+            defaultVideoView.visibility = View.VISIBLE
+            defaultVideoView.setOnClickListener(null)
+            defaultVideoView.setGestureDetectorEnabled(true)
+            val shareUserId = inMeetingService.activeShareUserID()
             val renderInfo1 = MobileRTCRenderInfo(0, 0, 100, 100)
-            mDefaultVideoViewMgr.addShareVideoUnit(shareUserId, renderInfo1)
+            defaultVideoViewManager?.addShareVideoUnit(shareUserId, renderInfo1)
         }
-        mAdapter.setUserList(null)
-        mAdapter.notifyDataSetChanged()
+        attenderVideoAdapter.setUserList(null)
+        attenderVideoAdapter.notifyDataSetChanged()
         videoListLayout.visibility = View.INVISIBLE
     }
 
     private val isMySelfWebinarAttendee: Boolean
         get() {
-            val myUserInfo = mInMeetingService.myUserInfo
-            return if (myUserInfo != null && mInMeetingService.isWebinarMeeting) {
+            val myUserInfo = inMeetingService.myUserInfo
+            return if (myUserInfo != null && inMeetingService.isWebinarMeeting) {
                 myUserInfo.inMeetingUserRole == InMeetingUserInfo.InMeetingUserRole.USERROLE_ATTENDEE
             } else false
         }
     private val isMySelfWebinarHostCoHost: Boolean
         get() {
-            val myUserInfo = mInMeetingService.myUserInfo
-            return if (myUserInfo != null && mInMeetingService.isWebinarMeeting) {
+            val myUserInfo = inMeetingService.myUserInfo
+            return if (myUserInfo != null && inMeetingService.isWebinarMeeting) {
                 (myUserInfo.inMeetingUserRole == InMeetingUserInfo.InMeetingUserRole.USERROLE_HOST
                         || myUserInfo.inMeetingUserRole == InMeetingUserInfo.InMeetingUserRole.USERROLE_COHOST)
             } else false
@@ -730,12 +738,12 @@ open class MyMeetingActivity : FragmentActivity(),
         MeetingWindowHelper.getInstance().hiddenMeetingWindow(false)
         checkShowVideoLayout(false)
         meetingVideoHelper.checkVideoRotation(this)
-        mDefaultVideoView.onResume()
+        defaultVideoView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mDefaultVideoView.onPause()
+        defaultVideoView.onPause()
     }
 
     override fun onStop() {
@@ -744,10 +752,10 @@ open class MyMeetingActivity : FragmentActivity(),
     }
 
     private fun clearSubscribe() {
-        mDefaultVideoViewMgr.removeAllVideoUnits()
-        val userList = mInMeetingService.inMeetingUserList
+        defaultVideoViewManager?.removeAllVideoUnits()
+        val userList = inMeetingService.inMeetingUserList
         userList?.let {
-            mAdapter.removeUserList(it)
+            attenderVideoAdapter.removeUserList(it)
         }
         currentLayoutType = -1
     }
@@ -756,7 +764,7 @@ open class MyMeetingActivity : FragmentActivity(),
         super.onDestroy()
         remoteControlHelper.onDestroy()
         unRegisterListener()
-        mAdapter.clear()
+        attenderVideoAdapter.clear()
     }
 
     private var callBack: MeetingOptionBarCallBack = object : MeetingOptionBarCallBack {
@@ -785,11 +793,11 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun onClickChats() {
-            mInMeetingService.showZoomChatUI(this@MyMeetingActivity, REQUEST_CHAT_CODE)
+            inMeetingService.showZoomChatUI(this@MyMeetingActivity, REQUEST_CHAT_CODE)
         }
 
         override fun onClickPlist() {
-            mInMeetingService.showZoomParticipantsUI(this@MyMeetingActivity, REQUEST_PLIST)
+            inMeetingService.showZoomParticipantsUI(this@MyMeetingActivity, REQUEST_PLIST)
         }
 
         override fun onClickDisconnectAudio() {
@@ -806,7 +814,7 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun onClickLowerAllHands() {
-            if (mInMeetingService.lowerAllHands(false) == MobileRTCSDKError.SDKERR_SUCCESS) Toast.makeText(
+            if (inMeetingService.lowerAllHands(false) == MobileRTCSDKError.SDKERR_SUCCESS) Toast.makeText(
                 this@MyMeetingActivity,
                 "Lower all hands successfully",
                 Toast.LENGTH_SHORT
@@ -814,15 +822,15 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun onClickReclaimHost() {
-            if (mInMeetingService.reclaimHost() == MobileRTCSDKError.SDKERR_SUCCESS) Toast.makeText(
+            if (inMeetingService.reclaimHost() == MobileRTCSDKError.SDKERR_SUCCESS) Toast.makeText(
                 this@MyMeetingActivity,
                 "Reclaim host successfully",
                 Toast.LENGTH_SHORT
             ).show()
         }
 
-        override fun showMoreMenu(popupWindow: PopupWindow) {
-            popupWindow.showAtLocation(
+        override fun showMoreMenu(popupWindow: PopupWindow?) {
+            popupWindow?.showAtLocation(
                 meetingOptionBar.parent as View,
                 Gravity.BOTTOM or Gravity.RIGHT,
                 0,
@@ -836,10 +844,10 @@ open class MyMeetingActivity : FragmentActivity(),
     }
 
     private fun onClickMiniWindow() {
-        if (mMeetingService.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
+        if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_INMEETING) {
             //stop share
             if (currentLayoutType == LAYOUT_TYPE_VIEW_SHARE) {
-                mDefaultVideoViewMgr.removeShareVideoUnit()
+                defaultVideoViewManager?.removeShareVideoUnit()
                 currentLayoutType = -1
             }
             val userList = ZoomSDK.getInstance().inMeetingService.inMeetingUserList
@@ -861,9 +869,7 @@ open class MyMeetingActivity : FragmentActivity(),
         }
     }
 
-    override fun onBackPressed() {
-        showLeaveMeetingDialog()
-    }
+    override fun onBackPressed() = showLeaveMeetingDialog()
 
     private fun updateVideoListMargin(hidden: Boolean) {
         val params = videoListLayout.layoutParams as RelativeLayout.LayoutParams
@@ -896,7 +902,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
         builder?.dismiss()
 
-        val builder = Dialog(this, R.style.DigiOsZoomDialog)
+        val builder = Dialog(this, R.style.DigiOsDialog)
         this.builder = builder
 
         builder.setTitle("Need password or displayName")
@@ -916,9 +922,8 @@ open class MyMeetingActivity : FragmentActivity(),
         builder.findViewById<View>(R.id.btn_ok).setOnClickListener { _: View? ->
             val password = pwd.getText().toString()
             val userName = name.getText().toString()
-            if (needPassword && TextUtils.isEmpty(password) || needDisplayName && TextUtils.isEmpty(
-                    userName
-                )
+            if (needPassword && TextUtils.isEmpty(password) ||
+                needDisplayName && TextUtils.isEmpty(userName)
             ) {
                 builder.dismiss()
                 onMeetingNeedPasswordOrDisplayName(needPassword, needDisplayName, handler)
@@ -948,12 +953,12 @@ open class MyMeetingActivity : FragmentActivity(),
                 if (resultCode != RESULT_OK) {
                     Log.d(TAG, "onActivityResult REQUEST_SHARE_SCREEN_PERMISSION no ok ")
                 } else {
-                    startShareScreen(data)
+                    data?.let { startShareScreen(it) }
                 }
             }
 
             REQUEST_SYSTEM_ALERT_WINDOW -> meetingShareHelper.startShareScreenSession(
-                mScreenInfoData
+                screenInfoData
             )
 
             REQUEST_SYSTEM_ALERT_WINDOW_FOR_MINIWINDOW -> {
@@ -985,27 +990,27 @@ open class MyMeetingActivity : FragmentActivity(),
         }
     }
 
-    private fun showLeaveMeetingDialog() {
-        val builder = AlertDialog.Builder(this)
-        if (mInMeetingService.isMeetingConnected) {
-            if (mInMeetingService.isMeetingHost) {
-                builder.setTitle("End or leave meeting")
-                    .setPositiveButton("End") { _, _ -> leave(true) }
-                    .setNeutralButton("Leave") { _, _ -> leave(false) }
+    private fun showLeaveMeetingDialog() = with(AlertDialog.Builder(this)) {
+        if (inMeetingService.isMeetingConnected) {
+            if (inMeetingService.isMeetingHost) {
+                setTitle(R.string.dialog_exit_host)
+                setPositiveButton(R.string.dialog_action_end) { _, _ -> leave(true) }
+                setNeutralButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
             } else {
-                builder.setTitle("Leave meeting")
-                    .setPositiveButton("Leave") { _, _ -> leave(false) }
+                setTitle(R.string.dialog_exit_attendee)
+                setPositiveButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
             }
         } else {
-            builder.setTitle("Leave meeting")
-                .setPositiveButton("Leave") { _, _ -> leave(false) }
+            setTitle(R.string.dialog_exit_attendee)
+            setPositiveButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
         }
-        if (mInMeetingService.inMeetingBOController.isInBOMeeting) {
-            builder.setNegativeButton("Leave BO") { _, _ -> leaveBo() }
+
+        if (inMeetingService.inMeetingBOController.isInBOMeeting) {
+            setNegativeButton(R.string.dialog_action_leave_breakout) { _, _ -> leaveBo() }
         } else {
-            builder.setNegativeButton("Cancel", null)
+            setNegativeButton(android.R.string.cancel, null)
         }
-        builder.create().show()
+        create().show()
     }
 
     private fun leave(end: Boolean) {
@@ -1013,11 +1018,11 @@ open class MyMeetingActivity : FragmentActivity(),
             meetingShareHelper.stopShare()
         }
         finish()
-        mInMeetingService.leaveCurrentMeeting(end)
+        inMeetingService.leaveCurrentMeeting(end)
     }
 
     private fun leaveBo() {
-        val boController = mInMeetingService.inMeetingBOController
+        val boController = inMeetingService.inMeetingBOController
         val iboAssistant = boController.boAssistantHelper
         if (iboAssistant != null) {
             iboAssistant.leaveBO()
@@ -1041,7 +1046,7 @@ open class MyMeetingActivity : FragmentActivity(),
             .setCancelable(false)
             .setTitle("Need register to join this webinar meeting ")
             .setNegativeButton("Cancel") { _, _ ->
-                mInMeetingService.leaveCurrentMeeting(
+                inMeetingService.leaveCurrentMeeting(
                     true
                 )
             }
@@ -1062,22 +1067,19 @@ open class MyMeetingActivity : FragmentActivity(),
             .setPositiveButton("End Other Meeting") { _, _ -> handler.endOtherMeeting() }
             .setNeutralButton("Leave") { _, _ ->
                 finish()
-                mInMeetingService.leaveCurrentMeeting(true)
+                inMeetingService.leaveCurrentMeeting(true)
             }.create()
         dialog.show()
     }
 
     @SuppressLint("NewApi")
-    protected fun startShareScreen(data: Intent?) {
-        if (data == null) {
-            return
-        }
+    protected fun startShareScreen(data: Intent) {
         if (!Settings.canDrawOverlays(this)) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")
             )
-            mScreenInfoData = data
+            screenInfoData = data
             startActivityForResult(intent, REQUEST_SYSTEM_ALERT_WINDOW)
         } else {
             meetingShareHelper.startShareScreenSession(data)
@@ -1180,7 +1182,7 @@ open class MyMeetingActivity : FragmentActivity(),
     override fun onMeetingFail(errorCode: Int, internalErrorCode: Int) {
         mMeetingFailed = true
         mMeetingVideoView.visibility = View.GONE
-        mConnectingText.visibility = View.GONE
+        connectingLabel.visibility = View.GONE
         showJoinFailDialog(errorCode)
     }
 
@@ -1211,7 +1213,10 @@ open class MyMeetingActivity : FragmentActivity(),
         if (password.isNullOrEmpty()) {
             showPasswordDialog(needPassword, needDisplayName, handler)
         } else {
-            val username = getString(SysProperty.PROPERTY_ZOOM_PASSWORD, "Endava_Demo")
+            var username = getUsername(prefs)
+            if (username.isEmpty()) {
+                username = getString(SysProperty.PROPERTY_ZOOM_USERNAME, "Endava Demo")!!
+            }
             handler.setMeetingNamePassword(password, username, false)
         }
     }
@@ -1259,7 +1264,7 @@ open class MyMeetingActivity : FragmentActivity(),
     }
 
     override fun onHelpRequestReceived(strUserID: String) {
-        val boController = mInMeetingService.inMeetingBOController
+        val boController = inMeetingService.inMeetingBOController
         val iboAdmin = boController.boAdminHelper
         if (iboAdmin != null) {
             val boAndUser = getBoNameUserNameByUserId(boController, strUserID)
@@ -1299,35 +1304,26 @@ open class MyMeetingActivity : FragmentActivity(),
             BOEventCallback.getInstance().removeEvent(this)
             EmojiReactionCallback.getInstance().removeListener(this)
             smsService.removeListener(this)
-            ZoomSDK.getInstance().inMeetingService.inMeetingBOController.removeListener(
-                mBOControllerListener
-            )
-            ZoomSDK.getInstance().inMeetingService.inMeetingLiveTranscriptionController.removeListener(
-                mLiveTranscriptionListener
+            zoomSDK.inMeetingService.inMeetingBOController.removeListener(mBOControllerListener)
+            zoomSDK.inMeetingService.inMeetingLiveTranscriptionController.removeListener(mLiveTranscriptionListener
             )
         } catch (e: Exception) {
             Log.w(TAG, e)
         }
     }
 
-    private fun registerListener() {
-        smsService = mZoomSDK.smsService
+    private fun registerZoomListener() {
+        smsService = zoomSDK.smsService
         smsService.addListener(this)
-        mZoomSDK.inMeetingService.inMeetingBOController.addListener(
-            mBOControllerListener
-        )
         MeetingAudioCallback.getInstance().addListener(this)
         MeetingVideoCallback.getInstance().addListener(this)
         MeetingShareCallback.getInstance().addListener(this)
         MeetingUserCallback.getInstance().addListener(this)
         MeetingCommonCallback.getInstance().addListener(this)
         EmojiReactionCallback.getInstance().addListener(this)
-        val meetingInterpretationController =
-            mZoomSDK.inMeetingService.inMeetingInterpretationController
-        meetingInterpretationController.setEvent(event)
-        mZoomSDK.inMeetingService.inMeetingLiveTranscriptionController.addListener(
-            mLiveTranscriptionListener
-        )
+        inMeetingService.inMeetingBOController.addListener(mBOControllerListener)
+        inMeetingService.inMeetingInterpretationController.setEvent(event)
+        inMeetingService.inMeetingLiveTranscriptionController.addListener(mLiveTranscriptionListener)
     }
 
     private val mBOControllerListener: SimpleInMeetingBOControllerListener =
@@ -1337,18 +1333,18 @@ open class MyMeetingActivity : FragmentActivity(),
                 super.onHasAttendeeRightsNotification(iboAttendee)
                 Log.d(TAG, "onHasAttendeeRightsNotification")
                 iboAttendee.setEvent(iboAttendeeEvent)
-                val boController = mInMeetingService.inMeetingBOController
+                val boController = inMeetingService.inMeetingBOController
                 if (boController.isInBOMeeting) {
-                    mBtnJoinBo.visibility = View.GONE
-                    mBtnRequestHelp.visibility =
+                    joinBreakoutButton.visibility = View.GONE
+                    requestHelpButton.visibility =
                         if (iboAttendee.isHostInThisBO) View.GONE else View.VISIBLE
                     meetingOptionBar.updateMeetingNumber(iboAttendee.boName)
                 } else {
-                    mBtnRequestHelp.visibility = View.GONE
+                    requestHelpButton.visibility = View.GONE
                     val builder = AlertDialog.Builder(this@MyMeetingActivity)
                         .setMessage("The host is inviting you to join Breakout Room: " + iboAttendee.boName)
                         .setNegativeButton("Later") { _, _ ->
-                            mBtnJoinBo.visibility = View.VISIBLE
+                            joinBreakoutButton.visibility = View.VISIBLE
                         }
                         .setPositiveButton("Join") { _, _ -> iboAttendee.joinBo() }
                         .setCancelable(false)
@@ -1366,7 +1362,7 @@ open class MyMeetingActivity : FragmentActivity(),
                 super.onLostAttendeeRightsNotification()
                 Log.d(TAG, "onLostAttendeeRightsNotification")
                 dialog?.dismiss()
-                mBtnJoinBo.visibility = View.GONE
+                joinBreakoutButton.visibility = View.GONE
             }
 
             override fun onHasAdminRightsNotification(iboAdmin: IBOAdmin) {
@@ -1382,7 +1378,7 @@ open class MyMeetingActivity : FragmentActivity(),
         }
     private val iboDataEvent: IBODataEvent = object : IBODataEvent {
         override fun onBOInfoUpdated(strBOID: String) {
-            val boController = mInMeetingService.inMeetingBOController
+            val boController = inMeetingService.inMeetingBOController
             val iboData = boController.boDataHelper
             if (iboData != null) {
                 val boName = iboData.currentBoName
@@ -1393,7 +1389,7 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun onBOListInfoUpdated() {
-            val boController = mInMeetingService.inMeetingBOController
+            val boController = inMeetingService.inMeetingBOController
             val iboData = boController.boDataHelper
             if (iboData != null) {
                 val boName = iboData.currentBoName
@@ -1416,16 +1412,16 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun onHostJoinedThisBOMeeting() {
-            mBtnRequestHelp.visibility = View.GONE
+            requestHelpButton.visibility = View.GONE
         }
 
         override fun onHostLeaveThisBOMeeting() {
-            mBtnRequestHelp.visibility = View.VISIBLE
+            requestHelpButton.visibility = View.VISIBLE
         }
     }
 
     private fun attendeeRequestHelp() {
-        val boController = mInMeetingService.inMeetingBOController
+        val boController = inMeetingService.inMeetingBOController
         val boAttendee = boController.boAttendeeHelper
         if (boAttendee != null) {
             AlertDialog.Builder(this)
@@ -1466,25 +1462,23 @@ open class MyMeetingActivity : FragmentActivity(),
             }
 
             private fun updateLanguage() {
-                val controller =
-                    ZoomSDK.getInstance().inMeetingService.inMeetingInterpretationController
-                if (controller.isInterpretationEnabled && controller.isInterpretationStarted && controller.isInterpreter) {
-                    layout_lans.visibility = View.VISIBLE
-                } else {
-                    layout_lans.visibility = View.GONE
-                    return
-                }
-                val button1 = layout_lans.findViewById<TextView>(R.id.btn_lan1)
-                val button2 = layout_lans.findViewById<TextView>(R.id.btn_lan2)
+                val controller = zoomSDK.inMeetingService.inMeetingInterpretationController
+                // TODO: Not needed for demo
+                //  if (controller.isInterpretationEnabled && controller.isInterpretationStarted && controller.isInterpreter) {
+                //      layout_lans.visibility = View.VISIBLE
+                //  } else {
+                //      layout_lans.visibility = View.GONE
+                //      return
+                //  }
+                val button1 = langLayout.findViewById<TextView>(R.id.btn_lan1)
+                val button2 = langLayout.findViewById<TextView>(R.id.btn_lan2)
                 val list = controller.interpreterLans
                 val lanId = controller.interpreterActiveLan
                 if (null != list && list.size >= 2) {
-                    val language1 = controller.getInterpretationLanguageByID(list[0])
-                    val language2 = controller.getInterpretationLanguageByID(list[1])
-                    if (null != language1) {
+                    controller.getInterpretationLanguageByID(list[0])?.let { language1 ->
                         button1.text = language1.languageName
                     }
-                    if (null != language2) {
+                    controller.getInterpretationLanguageByID(list[1])?.let { language2 ->
                         button2.text = language2.languageName
                     }
                     when (lanId) {
@@ -1492,10 +1486,12 @@ open class MyMeetingActivity : FragmentActivity(),
                             button1.setSelected(true)
                             button2.setSelected(false)
                         }
+
                         list[1] -> {
                             button2.setSelected(true)
                             button1.setSelected(false)
                         }
+
                         else -> {
                             button2.setSelected(false)
                             button1.setSelected(false)
@@ -1589,7 +1585,7 @@ open class MyMeetingActivity : FragmentActivity(),
                 )
                 var userName: String? = null
                 if (!bAnonymous) {
-                    val userInfo = mInMeetingService.getUserInfoById(requesterUserId)
+                    val userInfo = inMeetingService.getUserInfoById(requesterUserId)
                     userName = userInfo.userName
                 }
                 LiveTranscriptionRequestHandleDialog.show(this@MyMeetingActivity, userName)
@@ -1625,6 +1621,15 @@ open class MyMeetingActivity : FragmentActivity(),
         protected const val REQUEST_SYSTEM_ALERT_WINDOW = 1002
         protected const val REQUEST_SYSTEM_ALERT_WINDOW_FOR_MINIWINDOW = 1003
         protected const val REQUEST_PHONE_STATUS_BLUETOOTH = 1004
+
+        private const val LAYOUT_TYPE_PREVIEW = 0
+        private const val LAYOUT_TYPE_WAITHOST = 1
+        private const val LAYOUT_TYPE_IN_WAIT_ROOM = 2
+        private const val LAYOUT_TYPE_ONLY_MYSELF = 3
+        private const val LAYOUT_TYPE_ONETOONE = 4
+        private const val LAYOUT_TYPE_LIST_VIDEO = 5
+        private const val LAYOUT_TYPE_VIEW_SHARE = 6
+        private const val LAYOUT_TYPE_SHARING_VIEW = 7
 
         @JvmField
         var mCurShareUserId: Long = -1
