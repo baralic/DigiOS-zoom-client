@@ -39,7 +39,19 @@
     <string name="login_join_label">Join</string>
     <string name="login_settings_label">Settings</string>
     <string name="login_return_meeting_label">Return Meeting</string>
-    <string name="login_loading_label">Logining…</string>
+    <string name="login_loading_label">Loading…</string>
+    <string name="connecting_label">Connecting…</string>
 
+    <string name="waiting_room_meeting_not_started">Wait host to start this meeting…</string>
+    <string name="waiting_room_meeting_not_admitted">Host will let you in soon…</string>
+
+    <string name="dialog_exit_host">End or leave meeting</string>
+    <string name="dialog_exit_attendee">Leave meeting</string>
+    <string name="dialog_action_end">End</string>
+    <string name="dialog_action_leave">Leave</string>
+    <string name="dialog_action_leave_breakout">Leave BO</string>
+
+    <string name="breakout_room_join">Join Breakout</string>
+    <string name="breakout_room_help">Request for Help</string>
 
 </resources>

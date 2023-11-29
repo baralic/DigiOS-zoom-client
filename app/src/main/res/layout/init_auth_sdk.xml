@@ -135,27 +135,9 @@
             tools:visibility="visible" />
     </LinearLayout>
 
-    <LinearLayout
+    <include
         android:id="@+id/progressPanel"
+        layout="@layout/layout_progress"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:focusable="false"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLargeInverse"
-            android:progressTint="@color/primary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/txtConnecting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/login_loading_label" />
-    </LinearLayout>
+        android:layout_height="wrap_content" />
 </LinearLayout>

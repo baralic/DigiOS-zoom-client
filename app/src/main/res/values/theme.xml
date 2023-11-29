@@ -12,7 +12,7 @@
         <item name="android:windowBackground">@color/background</item>
     </style>
 
-    <style name="DigiOsZoomDialog" parent="ZMDialog">
+    <style name="DigiOsDialog" parent="ZMDialog">
         <item name="android:windowBackground">@drawable/zm_dialog_bg</item>
         <item name="android:buttonStyle">@style/Basic.ButtonStyle</item>
         <item name="android:textViewStyle">@style/ZMTextView</item>
@@ -72,6 +72,14 @@
         <item name="colorControlActivated">@color/primary</item>
         <item name="android:progressTint">@color/primary</item>
         <item name="android:progressBackgroundTint">@color/secondary</item>
+    </style>
+
+    <style name="MessageLabel">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:textSize">25sp</item>
+        <item name="android:textColor">@color/secondary</item>
+        <item name="android:padding">20dp</item>
+        <item name="android:background">@drawable/background_rounded</item>
     </style>
 
 </resources>
