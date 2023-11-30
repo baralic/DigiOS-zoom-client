@@ -19,7 +19,20 @@
         android:focusable="true"
         android:singleLine="true"
         android:text="@string/meeting_audio"
-        android:nextFocusLeft="@+id/leaveButton"
+        android:textAllCaps="true"
+        android:textColor="@color/secondaryVariant"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/speakerButton"
+        style="@style/Basic.ButtonStyle.Normal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/speaker_icon"
+        android:focusable="true"
+        android:singleLine="true"
+        android:text="@string/meeting_speaker"
         android:textAllCaps="true"
         android:textColor="@color/secondaryVariant"
         android:textSize="15sp" />
@@ -68,12 +81,26 @@
         android:visibility="gone" />
 
     <TextView
+        android:id="@+id/switchCameraView"
+        style="@style/Basic.ButtonStyle.Normal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/icon_switch_camera"
+        android:focusable="true"
+        android:singleLine="true"
+        android:text="Lance"
+        android:textAllCaps="true"
+        android:visibility="gone"
+        android:textColor="@color/secondaryVariant"
+        android:textSize="15sp" />
+
+    <TextView
         android:id="@+id/moreActionButton"
         style="@style/Basic.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:nextFocusRight="@+id/backButton"
         android:drawableTop="@drawable/zm_btn_more"
         android:focusable="true"
         android:singleLine="true"
@@ -82,4 +109,31 @@
         android:textColor="@color/secondaryVariant"
         android:textSize="15sp"
         android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/backButton"
+        style="@style/Basic.ButtonStyle.Normal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/icon_shrink"
+        android:focusable="true"
+        android:singleLine="true"
+        android:text="@string/meeting_shrink"
+        android:textAllCaps="true"
+        android:textColor="@color/secondaryVariant"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/leaveButton"
+        style="@style/Basic.ButtonStyle.Warning"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/exit_icon_red"
+        android:layout_weight="1"
+        android:focusable="true"
+        android:singleLine="true"
+        android:text="@string/leave_meeting_label"
+        android:textAllCaps="true"
+        android:textSize="15sp" />
 </LinearLayout>

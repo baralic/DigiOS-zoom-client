@@ -116,14 +116,14 @@ public class RawDataMeetingActivity extends FragmentActivity implements MeetingS
         audioHelper = new MeetingAudioHelper(audioCallBack);
 
         actionBarContainer = findViewById(R.id.action_bar_container);
-        videoStatusImage = findViewById(R.id.videotatusImage);
+        videoStatusImage = findViewById(R.id.cameraButtonImage);
 
-        audioStatusImage = findViewById(R.id.audioStatusImage);
+        audioStatusImage = findViewById(R.id.audioButtonImage);
 
-        findViewById(R.id.btnCamera).setOnClickListener(this);
-        findViewById(R.id.btnAudio).setOnClickListener(this);
+        findViewById(R.id.cameraButton).setOnClickListener(this);
+        findViewById(R.id.audioButton).setOnClickListener(this);
         findViewById(R.id.btn_leave).setOnClickListener(this);
-        findViewById(R.id.btnSwitchCamera).setOnClickListener(this);
+        findViewById(R.id.switchCameraView).setOnClickListener(this);
         findViewById(R.id.btn_switch_source).setOnClickListener(this);
 
         switchToShare = findViewById(R.id.btn_switch_share);
@@ -254,11 +254,11 @@ public class RawDataMeetingActivity extends FragmentActivity implements MeetingS
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.btnCamera: {
+            case R.id.cameraButton: {
                 videoHelper.switchVideo();
                 break;
             }
-            case R.id.btnAudio: {
+            case R.id.audioButton: {
                 audioHelper.switchAudio();
                 break;
             }
@@ -279,7 +279,7 @@ public class RawDataMeetingActivity extends FragmentActivity implements MeetingS
                 }
                 break;
             }
-            case R.id.btnSwitchCamera: {
+            case R.id.switchCameraView: {
                 if (ZoomSDK.getInstance().getInMeetingService().getInMeetingVideoController().canSwitchCamera()) {
                     ZoomSDK.getInstance().getInMeetingService().getInMeetingVideoController().switchToNextCamera();
                 }

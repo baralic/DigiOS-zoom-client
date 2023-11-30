@@ -8,4 +8,6 @@
     <dimen name="toolbar_bottom_margin">148dp</dimen>
 
     <dimen name="button_corner_radius">10dp</dimen>
+    <dimen name="meeting_option_bar_height">70dp</dimen>
+
 </resources>

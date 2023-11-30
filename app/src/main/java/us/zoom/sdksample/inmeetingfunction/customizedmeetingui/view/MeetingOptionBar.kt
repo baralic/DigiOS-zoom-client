@@ -8,11 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.AdapterView.VISIBLE
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import us.zoom.sdk.InMeetingAnnotationController
 import us.zoom.sdk.InMeetingAudioController
@@ -36,28 +38,30 @@ import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.Simp
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.SimpleMenuItem
 import us.zoom.sdksample.inmeetingfunction.livetranscription.RequestLiveTranscriptionDialog
 import us.zoom.sdksample.ui.QAActivity
+import us.zoom.sdksample.util.Constants
 
-class MeetingOptionBar : FrameLayout, View.OnClickListener {
+class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysProperty {
 
     private var callback: MeetingOptionBarCallBack? = null
-    private var mContentView: View? = null
-    private lateinit var bottomBar: View
+
+    private lateinit var root: View
+
     private lateinit var topBar: View
+    private lateinit var meetingNumberText: TextView
+    private lateinit var meetingPasswordText: TextView
     private lateinit var leaveButton: View
-    private lateinit var audioButton: View
-    private lateinit var videoButton: View
-    private lateinit var shareButton: View
+    private lateinit var backButton: View
     lateinit var switchCameraView: View
         private set
 
-    private var mAudioStatusImg: ImageView? = null
-    private var mVideoStatusImg: ImageView? = null
-    private var mShareStatusImg: ImageView? = null
-    private var mMeetingNumberText: TextView? = null
-    private var mMeetingPasswordText: TextView? = null
-    private var mMeetingAudioText: TextView? = null
-    private var mMeetingVideoText: TextView? = null
-    private var mMeetingShareText: TextView? = null
+    private lateinit var bottomBar: View
+
+    private lateinit var audioButton: TextView
+    private lateinit var cameraButton: TextView
+    private lateinit var speakerButton: TextView
+    private lateinit var shareButton: TextView
+    private lateinit var chatButton: TextView
+    private lateinit var moreButton: TextView
 
     private var inMeetingService: InMeetingService? = null
     private var chatController: InMeetingChatController? = null
@@ -71,6 +75,9 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
     private var autoHidden = Runnable { hideOrShowToolbar(true) }
 
     private var virtualVideoSource: VirtualVideoSource? = null
+
+    val isShowing: Boolean
+        get() = visibility == VISIBLE
 
     interface MeetingOptionBarCallBack {
         fun onClickBack()
@@ -110,10 +117,28 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         callback = callBack
     }
 
-    fun initView(context: Context) {
-        mContentView = LayoutInflater.from(context)
-            .inflate(R.layout.layout_meeting_option, this, false)
-        addView(mContentView)
+    private fun initView(context: Context) {
+        root = LayoutInflater.from(context).inflate(R.layout.layout_meeting_option, this, false)
+        addView(root)
+
+        topBar = findViewById(R.id.top_bar)
+        meetingNumberText = topBar.findViewById(R.id.meetingNumber)
+        meetingPasswordText = topBar.findViewById(R.id.meetingPassword)
+        topBar.visibility = GONE
+
+        bottomBar = findViewById(R.id.bottom_bar)
+        backButton = bottomBar.findViewById(R.id.backButton)
+        leaveButton = bottomBar.findViewById(R.id.leaveButton)
+        switchCameraView = bottomBar.findViewById(R.id.switchCameraView)
+        audioButton = bottomBar.findViewById(R.id.audioButton)
+        speakerButton = bottomBar.findViewById(R.id.speakerButton)
+        cameraButton = bottomBar.findViewById(R.id.cameraButton)
+        shareButton = bottomBar.findViewById(R.id.shareButton)
+        chatButton = bottomBar.findViewById(R.id.chatButton)
+        moreButton = bottomBar.findViewById(R.id.moreActionButton)
+
+        addListeners()
+
         inMeetingService = ZoomSDK.getInstance().inMeetingService
         shareController = inMeetingService?.inMeetingShareController
         videoController = inMeetingService?.inMeetingVideoController
@@ -122,43 +147,40 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         annotationController = inMeetingService?.inMeetingAnnotationController
         chatController = inMeetingService?.inMeetingChatController
         interpretationController = inMeetingService?.inMeetingInterpretationController
+    }
 
-//        mContentView.setOnClickListener(this);
-        bottomBar = findViewById(R.id.bottom_bar)
-        topBar = findViewById(R.id.top_bar)
-        leaveButton = findViewById(R.id.btnLeaveZoomMeeting)
+    private fun addListeners() {
+        backButton.setOnClickListener(this)
         leaveButton.setOnClickListener(this)
-        shareButton = findViewById(R.id.btnShare)
-        shareButton.setOnClickListener(this)
-        videoButton = findViewById(R.id.btnCamera)
-        videoButton.setOnClickListener(this)
-        audioButton = findViewById(R.id.btnAudio)
-        audioButton.setOnClickListener(this)
-        findViewById<View>(R.id.btnChats).setOnClickListener(this)
-        mAudioStatusImg = findViewById(R.id.audioStatusImage)
-        mVideoStatusImg = findViewById(R.id.videotatusImage)
-        mShareStatusImg = findViewById(R.id.shareStatusImage)
-        mMeetingAudioText = findViewById(R.id.text_audio)
-        mMeetingVideoText = findViewById(R.id.text_video)
-        mMeetingShareText = findViewById(R.id.text_share)
-        findViewById<View>(R.id.moreActionImg).setOnClickListener(this)
-        switchCameraView = findViewById(R.id.btnSwitchCamera)
         switchCameraView.setOnClickListener(this)
-        mMeetingNumberText = findViewById(R.id.meetingNumber)
-        mMeetingPasswordText = findViewById(R.id.txtPassword)
-        findViewById<View>(R.id.btnBack).setOnClickListener(this)
+        shareButton.setOnClickListener(this)
+        cameraButton.setOnClickListener(this)
+        audioButton.setOnClickListener(this)
+        chatButton.setOnClickListener(this)
+        moreButton.setOnClickListener(this)
+        speakerButton.setOnClickListener(this)
+
+        audioButton.setOnLongClickListener {
+            if (audioController?.isAudioConnected == true) {
+                callback?.onClickDisconnectAudio()
+            }
+            true
+        }
     }
 
     fun hideOrShowToolbar(hidden: Boolean) {
-        removeCallbacks(autoHidden)
-        if (hidden) {
-            visibility = INVISIBLE
-        } else {
-            postDelayed(autoHidden, 3000)
-            visibility = VISIBLE
-            bringToFront()
-        }
-        callback?.onHidden(hidden)
+        visibility = VISIBLE
+        bringToFront()
+        // TODO: Not needed for ARGO Demo
+        //  removeCallbacks(autoHidden)
+        //  if (hidden) {
+        //      visibility = INVISIBLE
+        //  } else {
+        //      postDelayed(autoHidden, 3000)
+        //      visibility = VISIBLE
+        //      bringToFront()
+        //  }
+        //  callback?.onHidden(hidden)
     }
 
     val bottomBarHeight: Int
@@ -171,35 +193,48 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         get() = topBar.measuredHeight
 
     fun updateMeetingNumber(text: String?) {
-        mMeetingNumberText?.text = text
+        meetingNumberText.text = text
     }
 
-    fun updateMeetingPassword(text: String?) = mMeetingPasswordText?.let {
+    fun updateMeetingPassword(text: String?) {
         if (text?.isNotEmpty() == true) {
-            mMeetingPasswordText?.visibility = VISIBLE
-            mMeetingPasswordText?.text = text
+            meetingPasswordText.visibility = VISIBLE
+            meetingPasswordText.text = text
         } else {
-            mMeetingPasswordText?.visibility = GONE
+            meetingPasswordText.visibility = GONE
         }
     }
 
     fun refreshToolbar() {
         updateAudioButton()
+        updateSpeakerButton()
         updateVideoButton()
         updateShareButton()
+        updateChatButton()
+        updateMoreActionsButton()
         updateSwitchCameraButton()
     }
 
     fun updateAudioButton() {
-        if (audioController?.isAudioConnected == true) {
-            if (audioController?.isMyAudioMuted == true) {
-                mAudioStatusImg?.setImageResource(R.drawable.icon_meeting_audio_mute)
-            } else {
-                mAudioStatusImg?.setImageResource(R.drawable.icon_meeting_audio)
-            }
-        } else {
-            mAudioStatusImg?.setImageResource(R.drawable.icon_meeting_noaudio)
-        }
+        val drawableId = if (audioController?.isAudioConnected == true) {
+            if (audioController?.isMyAudioMuted == true) R.drawable.icon_meeting_audio_mute
+            else R.drawable.icon_meeting_audio
+        } else R.drawable.icon_meeting_noaudio
+        val drawable = ResourcesCompat.getDrawable(resources, drawableId, context.theme)
+        audioButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null)
+    }
+
+    fun updateSpeakerButton() = with(speakerButton) {
+        visibility = audioController?.let {
+            if (it.canSwitchAudioOutput()) {
+                val drawableId =
+                    if (it.loudSpeakerStatus) R.drawable.speaker_icon
+                    else R.drawable.speaker_icon_mute
+                val drawable = ResourcesCompat.getDrawable(resources, drawableId, context.theme)
+                setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null)
+                VISIBLE
+            } else GONE
+        } ?: GONE
     }
 
     private val isMySelfWebinarAttendee: Boolean
@@ -212,53 +247,71 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         }
 
     fun updateShareButton() {
-        if (isMySelfWebinarAttendee) {
-            shareButton.visibility = GONE
-        } else {
-            shareButton.visibility = VISIBLE
-            if (shareController?.isSharingOut == true) {
-                mMeetingShareText?.text = "Stop share"
-                mShareStatusImg?.setImageResource(R.drawable.icon_share_pause)
-            } else {
-                mMeetingShareText?.text = "Share"
-                mShareStatusImg?.setImageResource(R.drawable.icon_share_resume)
+        shareButton.visibility = shareController?.let {
+            if (hasShareFeature().not()) GONE
+            else if (isMySelfWebinarAttendee) GONE
+            else {
+                val drawableId: Int
+                val stringId: Int
+                if (it.isSharingOut) {
+                    stringId = R.string.meeting_stop_share
+                    drawableId = R.drawable.icon_share_pause
+                } else {
+                    stringId = R.string.meeting_start_share
+                    drawableId = R.drawable.icon_share_resume
+                }
+                shareButton.setText(stringId)
+                val drawable = ResourcesCompat.getDrawable(resources, drawableId, context.theme)
+                shareButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null)
+                VISIBLE
             }
-        }
+        } ?: GONE
+    }
+
+    private fun updateChatButton() {
+        chatButton.visibility = if (hasChatFeature()) VISIBLE else GONE
+    }
+
+    private fun updateMoreActionsButton() {
+        moreButton.visibility = if (hasMoreActionsFeature()) VISIBLE else GONE
     }
 
     fun updateVideoButton() {
-        if (videoController?.isMyVideoMuted == true) {
-            mVideoStatusImg?.setImageResource(R.drawable.icon_meeting_video_mute)
-        } else {
-            mVideoStatusImg?.setImageResource(R.drawable.icon_meeting_video)
-        }
+        val drawableId =
+            if (videoController?.isMyVideoMuted == true) R.drawable.icon_meeting_video_mute
+            else R.drawable.icon_meeting_video
+        val drawable = ResourcesCompat.getDrawable(resources, drawableId, context.theme)
+        cameraButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null)
     }
 
     fun updateSwitchCameraButton() {
-        if (videoController?.isMyVideoMuted == true) {
-            switchCameraView.visibility = GONE
-        } else {
-            switchCameraView.visibility = VISIBLE
-        }
+        // TODO: ARGO has only back camera
+        //  if (videoController?.isMyVideoMuted == true) {
+        //      switchCameraView.visibility = GONE
+        //  } else {
+        //      switchCameraView.visibility = VISIBLE
+        //  }
     }
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.btnBack -> callback?.onClickBack()
+            R.id.backButton -> callback?.onClickBack()
 
-            R.id.btnLeaveZoomMeeting -> callback?.onClickLeave()
+            R.id.leaveButton -> callback?.onClickLeave()
 
-            R.id.btnShare -> callback?.onClickShare()
+            R.id.shareButton -> callback?.onClickShare()
 
-            R.id.btnCamera -> callback?.onClickVideo()
+            R.id.cameraButton -> callback?.onClickVideo()
 
-            R.id.btnAudio -> callback?.onClickAudio()
+            R.id.audioButton -> callback?.onClickAudio()
 
-            R.id.btnSwitchCamera -> callback?.onClickSwitchCamera()
+            R.id.speakerButton -> callback?.onClickSwitchLoudSpeaker()
 
-            R.id.moreActionImg -> showMoreMenuPopupWindow()
+            R.id.switchCameraView -> callback?.onClickSwitchCamera()
 
-            R.id.btnChats -> callback?.onClickChats()
+            R.id.moreActionButton -> showMoreMenuPopupWindow()
+
+            R.id.chatButton -> callback?.onClickChats()
 
             else -> visibility = INVISIBLE
         }
@@ -322,16 +375,20 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         if (audioController?.isAudioConnected == true) {
             menuAdapter.addItem(SimpleMenuItem(MENU_DISCONNECT_AUDIO, "Disconnect Audio"))
         }
-        if (audioController?.canSwitchAudioOutput() == true) {
-            if (audioController?.loudSpeakerStatus == true) {
-                menuAdapter.addItem(SimpleMenuItem(MENU_SPEAKER_OFF, "Speak Off"))
-            } else {
-                menuAdapter.addItem(SimpleMenuItem(MENU_SPEAKER_ON, "Speak On"))
-            }
-        }
-        if (!isMySelfWebinarAttendee) menuAdapter.addItem(
-            SimpleMenuItem(MENU_SHOW_PLIST, "Paticipants")
-        )
+        // TODO: Handled by [speakerButton]
+        //  if (audioController?.canSwitchAudioOutput() == true) {
+        //      if (audioController?.loudSpeakerStatus == true) {
+        //          menuAdapter.addItem(SimpleMenuItem(MENU_SPEAKER_OFF, "Speak Off"))
+        //      } else {
+        //          menuAdapter.addItem(SimpleMenuItem(MENU_SPEAKER_ON, "Speak On"))
+        //      }
+        //  }
+
+        // TODO: Not compliant with ARGO
+        //  if (!isMySelfWebinarAttendee) menuAdapter.addItem(
+        //      SimpleMenuItem(MENU_SHOW_PLIST, "Paticipants")
+        //  )
+
         if (annotationController?.canDisableViewerAnnotation() == true) {
             if (annotationController?.isViewerAnnotationDisabled == false) {
                 menuAdapter.addItem(SimpleMenuItem(MENU_ANNOTATION_OFF, "Disable Annotation"))
@@ -340,27 +397,23 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
             }
         }
         if (isMySelfWebinarHostCoHost) {
-            if (webinarController!!.isAllowPanellistStartVideo) {
-                menuAdapter.addItem(
+            var item =
+                if (webinarController?.isAllowPanellistStartVideo == true) {
                     SimpleMenuItem(
                         MENU_DISALLOW_PANELIST_START_VIDEO,
                         "Disallow panelist start video"
                     )
-                )
-            } else {
-                menuAdapter.addItem(
+                } else {
                     SimpleMenuItem(MENU_ALLOW_PANELIST_START_VIDEO, "Allow panelist start video")
-                )
-            }
-            if (webinarController?.isAllowAttendeeChat == true) {
-                menuAdapter.addItem(
-                    SimpleMenuItem(MENU_DISALLOW_ATTENDEE_CHAT, "Disallow attendee chat")
-                )
+                }
+            menuAdapter.addItem(item)
+
+            item = if (webinarController?.isAllowAttendeeChat == true) {
+                SimpleMenuItem(MENU_DISALLOW_ATTENDEE_CHAT, "Disallow attendee chat")
             } else {
-                menuAdapter.addItem(
-                    SimpleMenuItem(MENU_ALLOW_ATTENDEE_CHAT, "Allow attendee chat")
-                )
+                SimpleMenuItem(MENU_ALLOW_ATTENDEE_CHAT, "Allow attendee chat")
             }
+            menuAdapter.addItem(item)
         }
         if (BuildConfig.DEBUG) {
             inMeetingService?.myUserInfo?.let {
@@ -370,17 +423,14 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
                     }
                 }
             }
-        }
-        if (BuildConfig.DEBUG) {
+
             if (interpretationController?.isInterpretationEnabled == true
                 && interpretationController?.isInterpreter == false
                 && interpretationController?.isInterpretationStarted == true
             ) {
                 menuAdapter.addItem(SimpleMenuItem(MENU_INTERPRETATION, "Language Interpretation"))
             }
-        }
 
-        if (BuildConfig.DEBUG) {
             if (interpretationController?.isInterpretationEnabled == true && isMySelfHost) {
                 menuAdapter.addItem(SimpleMenuItem(MENU_INTERPRETATION_ADMIN, "Interpretation"))
             }
@@ -412,11 +462,11 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
             menuAdapter.addItem(SimpleMenuItem(MENU_RECLAIM_HOST, "Reclaim Host"))
         }
 
-        menuAdapter.addItem(SimpleMenuItem(MENU_SHOW_CHAT_LEGAL_NOTICE, "Show Chat Legal Notice"))
+        // TODO: Not compliant with ARGO
+        // menuAdapter.addItem(SimpleMenuItem(MENU_SHOW_CHAT_LEGAL_NOTICE, "Show Chat Legal Notice"))
 
         // menuAdapter.addItem((new SimpleMenuItem(MENU_VIRTUAL_SOURCE, "Virtual source")));
         // menuAdapter.addItem((new SimpleMenuItem(MENU_INTERNAL_SOURCE, "Internal source")));
-
 
         val popupWindowLayout = LayoutInflater.from(context).inflate(R.layout.popupwindow, null)
         val shareActions = popupWindowLayout.findViewById<View>(R.id.actionListView) as ListView
@@ -443,7 +493,7 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
 
                 MENU_ALLOW_PANELIST_START_VIDEO -> webinarController?.allowPanelistStartVideo()
 
-                MENU_DISALLOW_PANELIST_START_VIDEO -> webinarController!!.disallowPanelistStartVideo()
+                MENU_DISALLOW_PANELIST_START_VIDEO -> webinarController?.disallowPanelistStartVideo()
 
                 MENU_ANNOTATION_ON -> annotationController?.disableViewerAnnotation(false)
 
@@ -504,7 +554,6 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
                 MENU_LIVE_TRANSCRIPTION_STOP ->
                     inMeetingService?.inMeetingLiveTranscriptionController?.stopLiveTranscription()
 
-
                 MENU_SHOW_CHAT_LEGAL_NOTICE ->
                     LegalNoticeDialogUtil.showChatLegalNoticeDialog(context)
             }
@@ -518,8 +567,15 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener {
         }
     }
 
-    val isShowing: Boolean
-        get() = visibility == VISIBLE
+    private fun hasShareFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_SHARE)
+    private fun hasChatFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_CHAT)
+    private fun hasCaptionsFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_CAPTIONS)
+    private fun hasWhiteboardFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_WHITEBOARD)
+    private fun hasParticipantsFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_PARTICIPANTS)
+    private fun hasReactionsFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_REACTIONS)
+    private fun hasRecordingFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_RECORDING)
+    private fun hasMoreActionsFeature() = getBoolean(Constants.SysProperty.PROPERTY_USE_MORE)
+
 
     companion object {
         private const val TAG = "MeetingOptionBar"

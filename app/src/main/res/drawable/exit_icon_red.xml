@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ *************************************************************************
+  ~ Copyright 2020 Adobe
+  ~ All Rights Reserved.
+  ~
+  ~ NOTICE: All information contained herein is, and remains
+  ~ the property of Adobe and its suppliers, if any. The intellectual
+  ~ and technical concepts contained herein are proprietary to Adobe
+  ~ and its suppliers and are protected by all applicable intellectual
+  ~ property laws, including trade secret and copyright laws.
+  ~ Dissemination of this information or reproduction of this material
+  ~ is strictly forbidden unless prior written permission is obtained
+  ~ from Adobe.
+  ~ *************************************************************************
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="26dp"
+    android:height="26dp"
+    android:viewportWidth="18"
+    android:viewportHeight="18">
+    <path
+        android:pathData="M0,0h18v18h-18z"
+        android:strokeAlpha="0"
+        android:fillColor="#ff3c3c"
+        android:fillAlpha="0"/>
+    <path
+        android:pathData="M11.912,12.847h-0.971a0.485,0.485 0,0 0,-0.485 0.485v1.456L2.691,14.788L2.691,3.141h7.765L10.456,4.6a0.485,0.485 0,0 0,0.485 0.485h0.971a0.485,0.485 0,0 0,0.485 -0.485L12.397,1.685A0.485,0.485 0,0 0,11.912 1.2L1.235,1.2A0.485,0.485 0,0 0,0.75 1.685L0.75,16.244a0.485,0.485 0,0 0,0.485 0.485L11.912,16.729a0.485,0.485 0,0 0,0.485 -0.485L12.397,13.332A0.485,0.485 0,0 0,11.912 12.847Z"
+        android:fillColor="#ff3c3c"/>
+    <path
+        android:pathData="M17.18,8.795 L14.014,5.183a0.381,0.381 0,0 0,-0.256 -0.1,0.388 0.388,0 0,0 -0.391,0.389v2.523L8.029,7.995A0.485,0.485 0,0 0,7.544 8.483v0.971a0.485,0.485 0,0 0,0.485 0.485h5.338v2.523a0.388,0.388 0,0 0,0.391 0.389,0.381 0.381,0 0,0 0.256,-0.1l3.166,-3.613A0.243,0.243 0,0 0,17.18 8.795Z"
+        android:fillColor="#ff3c3c"/>
+</vector>

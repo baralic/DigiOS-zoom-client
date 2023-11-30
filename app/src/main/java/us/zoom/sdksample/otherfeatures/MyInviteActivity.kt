@@ -16,7 +16,7 @@ class MyInviteActivity : Activity() {
         val txtUrl = findViewById<View>(R.id.txtUrl) as TextView
         val txtSubject = findViewById<View>(R.id.txtSubject) as TextView
         val txtMeetingId = findViewById<View>(R.id.txtMeetingId) as TextView
-        val txtPassword = findViewById<View>(R.id.txtPassword) as TextView
+        val txtPassword = findViewById<View>(R.id.meetingPassword) as TextView
         val txtRawPassword = findViewById<View>(R.id.txtRawPassword) as TextView
         val edtText = findViewById<View>(R.id.edtText) as EditText
 

@@ -48,10 +48,22 @@
     <string name="dialog_exit_host">End or leave meeting</string>
     <string name="dialog_exit_attendee">Leave meeting</string>
     <string name="dialog_action_end">End</string>
-    <string name="dialog_action_leave">Leave</string>
+    <string name="leave_meeting_label">Leave</string>
     <string name="dialog_action_leave_breakout">Leave BO</string>
 
     <string name="breakout_room_join">Join Breakout</string>
     <string name="breakout_room_help">Request for Help</string>
+
+
+    <string name="meeting_stop_share">Stop share</string>
+    <string name="meeting_start_share">Share</string>
+    <string name="meeting_audio">Audio</string>
+    <string name="meeting_speaker">Speaker</string>
+    <string name="meeting_video">Video</string>
+    <string name="meeting_share">Share</string>
+    <string name="meeting_chats">Chats</string>
+    <string name="meeting_more">More</string>
+    <string name="meeting_shrink">Shrink</string>
+
 
 </resources>

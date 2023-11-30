@@ -265,6 +265,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
         override fun updateAudioButton() {
             meetingOptionBar.updateAudioButton()
+            meetingOptionBar.updateSpeakerButton()
         }
     }
     private val shareCallBack: MeetingShareUICallBack = object : MeetingShareUICallBack {
@@ -806,6 +807,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
         override fun onClickSwitchLoudSpeaker() {
             meetingAudioHelper.switchLoudSpeaker()
+            meetingOptionBar.updateSpeakerButton()
         }
 
         override fun onClickAdminBo() {
@@ -855,6 +857,7 @@ open class MyMeetingActivity : FragmentActivity(),
                 showLeaveMeetingDialog()
                 return
             }
+            Log.d("ZOOM", "onClickMiniWindow:canDrawOverlays=" + Settings.canDrawOverlays(this))
             if (!Settings.canDrawOverlays(this)) {
                 val intent = Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -995,14 +998,14 @@ open class MyMeetingActivity : FragmentActivity(),
             if (inMeetingService.isMeetingHost) {
                 setTitle(R.string.dialog_exit_host)
                 setPositiveButton(R.string.dialog_action_end) { _, _ -> leave(true) }
-                setNeutralButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
+                setNeutralButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
             } else {
                 setTitle(R.string.dialog_exit_attendee)
-                setPositiveButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
+                setPositiveButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
             }
         } else {
             setTitle(R.string.dialog_exit_attendee)
-            setPositiveButton(R.string.dialog_action_leave) { _, _ -> leave(false) }
+            setPositiveButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
         }
 
         if (inMeetingService.inMeetingBOController.isInBOMeeting) {

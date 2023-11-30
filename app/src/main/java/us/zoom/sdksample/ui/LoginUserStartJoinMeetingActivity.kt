@@ -28,7 +28,6 @@ import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingWindo
 import us.zoom.sdksample.inmeetingfunction.zoommeetingui.ZoomMeetingUISettingHelper
 import us.zoom.sdksample.startjoinmeeting.LoginUserStartMeetingHelper
 import us.zoom.sdksample.startjoinmeeting.joinmeetingonly.JoinMeetingHelper
-import us.zoom.sdksample.ui.InitAuthSDKActivity
 import us.zoom.sdksample.util.Constants.Auth
 import java.util.Locale
 
@@ -62,7 +61,7 @@ class LoginUserStartJoinMeetingActivity : Activity(), Auth, MeetingServiceListen
         if (InitAuthSDKActivity.showMeetingTokenUI) {
             meetingTokenEdit.visibility = View.VISIBLE
         }
-        mBtnDirectShare = findViewById(R.id.btnShare)
+        mBtnDirectShare = findViewById(R.id.shareButton)
         registerListener()
     }
 
