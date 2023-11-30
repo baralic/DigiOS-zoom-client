@@ -23,7 +23,7 @@
         android:text="Meeting ID: "/>
     
     <TextView
-        android:id="@+id/txtPassword"
+        android:id="@+id/meetingPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Password: "/>
