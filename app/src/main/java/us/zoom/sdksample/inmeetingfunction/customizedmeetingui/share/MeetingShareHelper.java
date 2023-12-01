@@ -13,13 +13,17 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.BaseInputConnection;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import us.zoom.sdk.InMeetingService;
 import us.zoom.sdk.InMeetingShareController;
@@ -62,14 +66,13 @@ public class MeetingShareHelper {
         void onMySharStart(boolean start);
     }
 
-    private InMeetingShareController mInMeetingShareController;
+    private final InMeetingShareController mInMeetingShareController;
 
-    private InMeetingService mInMeetingService;
+    private final InMeetingService mInMeetingService;
 
-    private MeetingShareUICallBack callBack;
+    private final MeetingShareUICallBack callBack;
 
-    private Activity activity;
-    private PathAcquireTask pathAcquireTask;
+    private final Activity activity;
 
     public MeetingShareHelper(Activity activity, MeetingShareUICallBack callBack) {
         mInMeetingShareController = ZoomSDK.getInstance().getInMeetingService().getInMeetingShareController();
@@ -130,12 +133,7 @@ public class MeetingShareHelper {
     public void showOtherSharingTip() {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.alert_other_is_sharing)
-                .setNegativeButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
+                .setNegativeButton("OK", (dialog, which) -> dialog.dismiss())
                 .create().show();
 
     }
@@ -167,14 +165,11 @@ public class MeetingShareHelper {
         }
     }
 
+    private BaseInputConnection mInputConnection;
 
     public void showShareActionPopupWindow() {
-
         final SimpleMenuAdapter menuAdapter = new SimpleMenuAdapter(activity);
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SCREEN, "Screen"));
-        }
+        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SCREEN, "Screen"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_IMAGE, "Image"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_WEBVIEW, "Web url"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_WHITE_BOARD, "WhiteBoard"));
@@ -187,40 +182,82 @@ public class MeetingShareHelper {
 
         ListView shareActions = (ListView) popupWindowLayout.findViewById(R.id.actionListView);
         final PopupWindow window = new PopupWindow(popupWindowLayout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        window.setBackgroundDrawable(activity.getResources().getDrawable(R.drawable.bg_transparent));
+        window.setBackgroundDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.bg_transparent, activity.getTheme()));
         shareActions.setAdapter(menuAdapter);
+        shareActions.setItemsCanFocus(true);
+        shareActions.setSelection(0);
 
-        shareActions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (mInMeetingShareController.isOtherSharing()) {
-                    showOtherSharingTip();
-                    window.dismiss();
-                    return;
-                }
+        mInputConnection = new BaseInputConnection(shareActions, true);
 
-                SimpleMenuItem item = (SimpleMenuItem) menuAdapter.getItem(position);
-                shareType = item.getAction();
-                if (shareType == MENU_SHARE_WEBVIEW) {
-                    startShareWebUrl();
-                } else if (shareType == MENU_SHARE_IMAGE) {
-                    openFileExplorer();
-                } else if (shareType == MENU_SHARE_SCREEN) {
-                    askScreenSharePermission();
-                } else if (shareType == MENU_WHITE_BOARD) {
-                    startShareWhiteBoard();
-                } else if (shareType == MENU_PDF) {
-                    openFileExplorer();
-                } else if (shareType == MENU_SHARE_SOURCE) {
-                    startShareSource(false);
-                } else if (shareType == MENU_SHARE_CAMERA) {
-                    startShareCamera();
-                } else if (shareType == MENU_SHARE_SOURCE_WITH_AUDIO) {
-                    startShareSource(true);
-                }
+        shareActions.addOnUnhandledKeyEventListener((v, event) -> {
+            int keyCode = event.getKeyCode();
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    mInputConnection.sendKeyEvent(
+                            new KeyEvent(
+                                    event.getDownTime(),
+                                    event.getEventTime(),
+                                    event.getAction(),
+                                    KeyEvent.KEYCODE_DPAD_UP,
+                                    event.getRepeatCount(),
+                                    event.getMetaState(),
+                                    event.getDeviceId(),
+                                    event.getScanCode(),
+                                    event.getFlags(),
+                                    event.getSource()
+                            )
+                    );
 
-                window.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    mInputConnection.sendKeyEvent(
+                            new KeyEvent(
+                                    event.getDownTime(),
+                                    event.getEventTime(),
+                                    event.getAction(),
+                                    KeyEvent.KEYCODE_DPAD_DOWN,
+                                    event.getRepeatCount(),
+                                    event.getMetaState(),
+                                    event.getDeviceId(),
+                                    event.getScanCode(),
+                                    event.getFlags(),
+                                    event.getSource()
+                            )
+                    );
+                    break;
+                default: return false;
             }
+            return true;
+        });
+
+        shareActions.setOnItemClickListener((parent, view, position, id) -> {
+            if (mInMeetingShareController.isOtherSharing()) {
+                showOtherSharingTip();
+                window.dismiss();
+                return;
+            }
+
+            SimpleMenuItem item = (SimpleMenuItem) menuAdapter.getItem(position);
+            shareType = item.getAction();
+            if (shareType == MENU_SHARE_WEBVIEW) {
+                startShareWebUrl();
+            } else if (shareType == MENU_SHARE_IMAGE) {
+                openFileExplorer();
+            } else if (shareType == MENU_SHARE_SCREEN) {
+                askScreenSharePermission();
+            } else if (shareType == MENU_WHITE_BOARD) {
+                startShareWhiteBoard();
+            } else if (shareType == MENU_PDF) {
+                openFileExplorer();
+            } else if (shareType == MENU_SHARE_SOURCE) {
+                startShareSource(false);
+            } else if (shareType == MENU_SHARE_CAMERA) {
+                startShareCamera();
+            } else if (shareType == MENU_SHARE_SOURCE_WITH_AUDIO) {
+                startShareSource(true);
+            }
+
+            window.dismiss();
         });
 
         window.setFocusable(true);
@@ -233,9 +270,6 @@ public class MeetingShareHelper {
 
     @SuppressLint("NewApi")
     protected void askScreenSharePermission() {
-        if (Build.VERSION.SDK_INT < 21) {
-            return;
-        }
         if (mInMeetingShareController.isOtherSharing()) {
             showOtherSharingTip();
             return;
@@ -339,7 +373,7 @@ public class MeetingShareHelper {
         String path = null;
         if (resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
-            pathAcquireTask = new PathAcquireTask(activity, uri, new PathAcquireTask.Callback() {
+            PathAcquireTask pathAcquireTask = new PathAcquireTask(activity, uri, new PathAcquireTask.Callback() {
                 @Override
                 public void getPath(String path) {
                     if (TextUtils.isEmpty(path)) {

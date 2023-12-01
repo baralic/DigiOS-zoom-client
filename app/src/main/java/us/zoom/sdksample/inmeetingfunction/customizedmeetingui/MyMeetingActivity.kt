@@ -140,15 +140,15 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var requestHelpButton: Button
     private lateinit var appsView: ImageView
     private lateinit var langLayout: View
+    private lateinit var meetingVideoView: FrameLayout
     private lateinit var videoListLayout: LinearLayout
     private lateinit var defaultVideoView: MobileRTCVideoView
-    private lateinit var mShareView: MobileRTCShareView
-    private lateinit var mDrawingView: AnnotateToolbar
-    private lateinit var mMeetingVideoView: FrameLayout
+    private lateinit var sharingView: MobileRTCShareView
+    private lateinit var drawingView: AnnotateToolbar
     private lateinit var mNormalSenceView: View
     private lateinit var customShareView: CustomShareView
     private lateinit var mVideoListView: RecyclerView
-    private lateinit var localShareContentView: MobileRTCVideoView
+    private lateinit var localShareView: MobileRTCVideoView
     private lateinit var meetingOptionBar: MeetingOptionBar
     private lateinit var localShareRender: RawDataRender
 
@@ -201,11 +201,11 @@ open class MyMeetingActivity : FragmentActivity(),
         joinBreakoutButton = findViewById(R.id.joinBreakoutButton)
         requestHelpButton = findViewById(R.id.requestHelpButton)
         meetingOptionBar = findViewById(R.id.meetingOptionBar)
-        localShareContentView = findViewById(R.id.local_share_content_view)
-        localShareRender = findViewById(R.id.local_share_content_view_render)
-        mMeetingVideoView = findViewById(R.id.meetingVideoView)
-        mShareView = findViewById(R.id.sharingView)
-        mDrawingView = findViewById(R.id.drawingView)
+        meetingVideoView = findViewById(R.id.meetingVideoView)
+        sharingView = findViewById(R.id.sharingView)
+        drawingView = findViewById(R.id.drawingView)
+        localShareView = findViewById(R.id.localShareView)
+        localShareRender = findViewById(R.id.localShareRender)
 
         appsView.setOnClickListener(this)
         joinBreakoutButton.setOnClickListener(this)
@@ -217,7 +217,7 @@ open class MyMeetingActivity : FragmentActivity(),
         defaultVideoView = mNormalSenceView.findViewById(R.id.videoView)
         customShareView = mNormalSenceView.findViewById(R.id.custom_share_view)
         remoteControlHelper = MeetingRemoteControlHelper(customShareView)
-        mMeetingVideoView.addView(
+        meetingVideoView.addView(
             mNormalSenceView,
             FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -291,7 +291,7 @@ open class MyMeetingActivity : FragmentActivity(),
         }
 
         override fun getShareView(): MobileRTCShareView {
-            return mShareView
+            return sharingView
         }
 
         override fun requestStoragePermission(): Boolean {
@@ -364,7 +364,7 @@ open class MyMeetingActivity : FragmentActivity(),
     override fun onEmojiReactionReceivedInWebinar(type: SDKEmojiReactionType) {}
     internal inner class GestureDetectorListener : SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            if (mDrawingView.isAnnotationStarted || remoteControlHelper.isEnableRemoteControl) {
+            if (drawingView.isAnnotationStarted || remoteControlHelper.isEnableRemoteControl) {
                 meetingOptionBar.hideOrShowToolbar(true)
                 return true
             }
@@ -414,22 +414,22 @@ open class MyMeetingActivity : FragmentActivity(),
             if (meetingShareHelper.isSenderSupportAnnotation(mCurShareUserId)) {
                 if (inMeetingService.isMyself(mCurShareUserId) && !meetingShareHelper.isSharingScreen) {
                     if (meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE || meetingShareHelper.shareType == MeetingShareHelper.MENU_SHARE_SOURCE_WITH_AUDIO) {
-                        mDrawingView.visibility = View.GONE
+                        drawingView.visibility = View.GONE
                     } else {
-                        mDrawingView.visibility = View.VISIBLE
+                        drawingView.visibility = View.VISIBLE
                     }
                 } else {
                     if (currentLayoutType == LAYOUT_TYPE_VIEW_SHARE) {
-                        mDrawingView.visibility = View.VISIBLE
+                        drawingView.visibility = View.VISIBLE
                     } else {
-                        mDrawingView.visibility = View.GONE
+                        drawingView.visibility = View.GONE
                     }
                 }
             } else {
-                mDrawingView.visibility = View.GONE
+                drawingView.visibility = View.GONE
             }
         } else {
-            mDrawingView.visibility = View.GONE
+            drawingView.visibility = View.GONE
         }
     }
 
@@ -492,12 +492,12 @@ open class MyMeetingActivity : FragmentActivity(),
         when (type) {
             LAYOUT_TYPE_WAITHOST -> {
                 waitingRoomView.visibility = View.GONE
-                mMeetingVideoView.visibility = View.VISIBLE
+                meetingVideoView.visibility = View.VISIBLE
             }
 
             LAYOUT_TYPE_IN_WAIT_ROOM -> {
                 waitingRoomView.visibility = View.GONE
-                mMeetingVideoView.visibility = View.VISIBLE
+                meetingVideoView.visibility = View.VISIBLE
             }
 
             LAYOUT_TYPE_PREVIEW, LAYOUT_TYPE_ONLY_MYSELF, LAYOUT_TYPE_ONETOONE -> {
@@ -510,9 +510,9 @@ open class MyMeetingActivity : FragmentActivity(),
             }
 
             LAYOUT_TYPE_SHARING_VIEW -> {
-                mShareView.visibility = View.GONE
+                sharingView.visibility = View.GONE
                 showLocalShareContent(false)
-                mMeetingVideoView.visibility = View.VISIBLE
+                meetingVideoView.visibility = View.VISIBLE
             }
         }
         if (type != LAYOUT_TYPE_SHARING_VIEW) {
@@ -526,7 +526,7 @@ open class MyMeetingActivity : FragmentActivity(),
                 waitingRoomView.visibility = View.VISIBLE
                 waitingRoomMessage.setText(R.string.waiting_room_meeting_not_started)
                 refreshToolbar()
-                mMeetingVideoView.visibility = View.GONE
+                meetingVideoView.visibility = View.GONE
             }
 
             LAYOUT_TYPE_IN_WAIT_ROOM -> {
@@ -534,8 +534,8 @@ open class MyMeetingActivity : FragmentActivity(),
                 waitingRoomMessage.setText(R.string.waiting_room_meeting_not_admitted)
                 videoListLayout.visibility = View.GONE
                 refreshToolbar()
-                mMeetingVideoView.visibility = View.GONE
-                mDrawingView.visibility = View.GONE
+                meetingVideoView.visibility = View.GONE
+                drawingView.visibility = View.GONE
             }
 
             LAYOUT_TYPE_PREVIEW -> {
@@ -623,9 +623,9 @@ open class MyMeetingActivity : FragmentActivity(),
         if (!show) {
             localShareRender.visibility = View.GONE
             localShareRender.unSubscribe()
-            val videoViewManager = localShareContentView.videoViewManager
+            val videoViewManager = localShareView.videoViewManager
             videoViewManager.removeAllVideoUnits()
-            localShareContentView.visibility = View.INVISIBLE
+            localShareView.visibility = View.INVISIBLE
             sdkRenderer.unSubscribe()
         } else {
             if (inMeetingService.isMyself(mCurShareUserId)) {
@@ -633,8 +633,8 @@ open class MyMeetingActivity : FragmentActivity(),
                 val error =
                     sdkRenderer.subscribe(mCurShareUserId, ZoomSDKRawDataType.RAW_DATA_TYPE_SHARE)
                 Log.d(TAG, "subscribe local share content :$error")
-                localShareContentView.visibility = View.VISIBLE
-                val videoViewManager = localShareContentView.videoViewManager
+                localShareView.visibility = View.VISIBLE
+                val videoViewManager = localShareView.videoViewManager
                 videoViewManager.removeAllVideoUnits()
                 val renderInfo = MobileRTCRenderInfo(0, 0, 100, 100)
                 videoViewManager.addShareVideoUnit(mCurShareUserId, renderInfo)
@@ -654,8 +654,8 @@ open class MyMeetingActivity : FragmentActivity(),
         attenderVideoAdapter.setUserList(null)
         attenderVideoAdapter.notifyDataSetChanged()
         videoListLayout.visibility = View.GONE
-        mMeetingVideoView.visibility = View.GONE
-        mShareView.visibility = View.VISIBLE
+        meetingVideoView.visibility = View.GONE
+        sharingView.visibility = View.VISIBLE
         showLocalShareContent(true)
     }
 
@@ -730,7 +730,7 @@ open class MyMeetingActivity : FragmentActivity(),
         meetingVideoHelper.checkVideoRotation(this)
         val display = (getSystemService(WINDOW_SERVICE) as WindowManager).defaultDisplay
         val displayRotation = display.rotation
-        mShareView.onMyVideoRotationChangedForShareCamera(displayRotation)
+        sharingView.onMyVideoRotationChangedForShareCamera(displayRotation)
         updateVideoListMargin(!meetingOptionBar.isShowing)
     }
 
@@ -1184,7 +1184,7 @@ open class MyMeetingActivity : FragmentActivity(),
     override fun onWebinarNeedRegister(registerUrl: String) {}
     override fun onMeetingFail(errorCode: Int, internalErrorCode: Int) {
         mMeetingFailed = true
-        mMeetingVideoView.visibility = View.GONE
+        meetingVideoView.visibility = View.GONE
         connectingLabel.visibility = View.GONE
         showJoinFailDialog(errorCode)
     }

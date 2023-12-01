@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_view"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:descendantFocusability="afterDescendants">
 
     <RelativeLayout
@@ -18,7 +18,7 @@
             android:layout_gravity="center" />
 
         <FrameLayout
-            android:id="@+id/share_contain"
+            android:id="@+id/shareContentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignWithParentIfMissing="true"
@@ -38,21 +38,19 @@
                 android:visibility="gone" />
 
             <us.zoom.sdk.MobileRTCVideoView
-                android:id="@+id/local_share_content_view"
+                android:id="@+id/localShareView"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
-                android:layout_gravity="top|right"
+                android:layout_gravity="top|end"
                 android:visibility="gone" />
 
+            <!--Minimized -->
             <us.zoom.sdksample.inmeetingfunction.customizedmeetingui.rawdata.RawDataRender
-                android:id="@+id/local_share_content_view_render"
+                android:id="@+id/localShareRender"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
-                android:layout_gravity="top|left"
-                android:visibility="gone">
-
-            </us.zoom.sdksample.inmeetingfunction.customizedmeetingui.rawdata.RawDataRender>
-
+                android:layout_gravity="top|end"
+                android:visibility="gone"/>
         </FrameLayout>
 
         <us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.VideoListLayout
