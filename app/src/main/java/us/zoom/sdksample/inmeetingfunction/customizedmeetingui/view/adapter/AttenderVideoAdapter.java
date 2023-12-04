@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +43,7 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
 
     private ItemClickListener listener;
 
-    int selected = -1;
+    int selectedPosition = -1;
 
     View selectedView;
 
@@ -80,13 +81,12 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
         params.width = itemSize;
         params.height = itemSize;
         view.setLayoutParams(params);
-
         view.setOnClickListener(onClickListener);
 
         return new ViewHold(view);
     }
 
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
+    private final View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             Long userId = (Long) view.getTag();
@@ -100,11 +100,11 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
                 }
                 listener.onItemClick(view, position, userId);
                 if (null != selectedView) {
-                    selectedView.setBackgroundResource(0);
+                    selectedView.setBackgroundResource(R.drawable.selector_checkbox);
                 }
                 view.setBackgroundResource(R.drawable.video_bg);
                 selectedView = view;
-                selected = position;
+                selectedPosition = position;
             }
         }
     };
@@ -146,14 +146,14 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
         }
 
 
-        if (position == selected) {
+        if (position == selectedPosition) {
             if (null != selectedView) {
-                selectedView.setBackgroundResource(0);
+                selectedView.setBackgroundResource(R.drawable.selector_checkbox);
             }
             holder.root.setBackgroundResource(R.drawable.video_bg);
             selectedView = holder.root;
         } else {
-            holder.root.setBackgroundResource(0);
+            holder.root.setBackgroundResource(R.drawable.selector_checkbox);
         }
     }
 
@@ -184,8 +184,8 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
     }
 
     public long getSelectedUserId() {
-        if (selected >= 0 && selected < userList.size()) {
-            return userList.get(selected);
+        if (selectedPosition >= 0 && selectedPosition < userList.size()) {
+            return userList.get(selectedPosition);
         }
         return -1;
     }
@@ -195,12 +195,12 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
             return;
         }
         for (Long userId : list) {
-            if (userList.indexOf(userId) >= 0) {
+            if (userList.contains(userId)) {
                 int index = userList.indexOf(userId);
                 userList.remove(index);
-                if (index == selected) {
-                    selected = 0;
-                    notifyItemChanged(selected);
+                if (index == selectedPosition) {
+                    selectedPosition = 0;
+                    notifyItemChanged(selectedPosition);
                 }
                 notifyItemRemoved(index);
             }
@@ -229,7 +229,7 @@ public class AttenderVideoAdapter extends RecyclerView.Adapter<AttenderVideoAdap
         return userInfo != null && userInfo.getInMeetingUserRole() == InMeetingUserInfo.InMeetingUserRole.USERROLE_ATTENDEE;
     }
 
-    class ViewHold extends RecyclerView.ViewHolder {
+    static class ViewHold extends RecyclerView.ViewHolder {
 
         View root;
         MobileRTCVideoView videoView;

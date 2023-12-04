@@ -4,12 +4,13 @@
     android:layout_height="match_parent"
     android:background="@color/transparent">
 
-    <include
-        layout="@layout/layout_option_topbar"
-        android:id="@+id/top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/meeting_option_bar_height"
-        android:layout_alignParentTop="true"/>
+<!-- TODO: Not needed for ARGO Demo -->
+<!--    <include-->
+<!--        layout="@layout/layout_option_topbar"-->
+<!--        android:id="@+id/top_bar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="@dimen/meeting_option_bar_height"-->
+<!--        android:layout_alignParentTop="true"/>-->
 
     <include
         layout="@layout/layout_meeting_bar"

@@ -19,15 +19,16 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.BaseInputConnection
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -35,7 +36,6 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import us.zoom.sdk.BOControllerError
 import us.zoom.sdk.IBOAdmin
 import us.zoom.sdk.IBOAttendee
@@ -102,6 +102,7 @@ import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingOptio
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingOptionBar.MeetingOptionBarCallBack
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.MeetingWindowHelper
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.RealNameAuthDialog
+import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.VideoListLayout
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.AttenderVideoAdapter
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.AttenderVideoAdapter.EmojiParams
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.AttenderVideoAdapter.ItemClickListener
@@ -117,6 +118,7 @@ import us.zoom.sdksample.util.Constants.Preferences
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.KeyboardFocusChangeListener
 import us.zoom.sdksample.util.hideSystemBars
+import us.zoom.sdksample.util.mapTo
 
 open class MyMeetingActivity : FragmentActivity(),
     View.OnClickListener,
@@ -141,17 +143,17 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var appsView: ImageView
     private lateinit var langLayout: View
     private lateinit var meetingVideoView: FrameLayout
-    private lateinit var videoListLayout: LinearLayout
+    private lateinit var videoListLayout: VideoListLayout
     private lateinit var defaultVideoView: MobileRTCVideoView
     private lateinit var sharingView: MobileRTCShareView
     private lateinit var drawingView: AnnotateToolbar
     private lateinit var mNormalSenceView: View
     private lateinit var customShareView: CustomShareView
-    private lateinit var mVideoListView: RecyclerView
     private lateinit var localShareView: MobileRTCVideoView
     private lateinit var meetingOptionBar: MeetingOptionBar
     private lateinit var localShareRender: RawDataRender
 
+    private lateinit var attenderInputConnection: BaseInputConnection
     private lateinit var attenderVideoAdapter: AttenderVideoAdapter
     private lateinit var gestureDetector: GestureDetector
 
@@ -225,16 +227,46 @@ open class MyMeetingActivity : FragmentActivity(),
             )
         )
 
-        mVideoListView = findViewById(R.id.videoList)
-        mVideoListView.bringToFront()
         videoListLayout = findViewById(R.id.videoListLayout)
+        attenderInputConnection = BaseInputConnection(videoListLayout, true)
+
         langLayout = findViewById(R.id.langLayout)
-        mVideoListView.setLayoutManager(
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        videoListLayout.videoList.bringToFront()
+
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        videoListLayout.videoList.setLayoutManager(layoutManager)
+        attenderVideoAdapter = AttenderVideoAdapter(
+            this, windowManager.defaultDisplay.width, pinVideoListener
         )
-        attenderVideoAdapter = AttenderVideoAdapter(this, windowManager.defaultDisplay.width, pinVideoListener)
-        mVideoListView.setAdapter(attenderVideoAdapter)
+        videoListLayout.setAdapter(attenderVideoAdapter)
+
         refreshToolbar()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        var result = meetingOptionBar.mapKeyDown(keyCode, event)
+        result?.let {  return super.onKeyDown(it.keyCode, it) }
+
+        result = videoListLayout.mapKeyDown(keyCode, event)
+        result?.let {
+            attenderInputConnection.sendKeyEvent(it)
+            return true
+        }
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        var result = meetingOptionBar.mapKeyUp(keyCode, event)
+        result?.let {  return super.onKeyUp(it.keyCode, it) }
+
+        result = videoListLayout.mapKeyUp(keyCode, event)
+        result?.let {
+            attenderInputConnection.sendKeyEvent(it)
+            return true
+        }
+
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -943,7 +975,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
     private fun updateVideoView(userList: List<Long>, action: Int) {
         if (currentLayoutType == LAYOUT_TYPE_LIST_VIDEO || currentLayoutType == LAYOUT_TYPE_VIEW_SHARE) {
-            if (mVideoListView.visibility == View.VISIBLE) {
+            if (videoListLayout.videoList.visibility == View.VISIBLE) {
                 updateAttendeeVideos(userList, action)
             }
         }
