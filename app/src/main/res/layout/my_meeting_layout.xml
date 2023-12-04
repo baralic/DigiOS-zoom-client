@@ -60,8 +60,10 @@
             android:layout_alignWithParentIfMissing="true"
             android:layout_alignParentBottom="true"
             android:background="@color/background"
+            android:descendantFocusability="afterDescendants"
+            android:focusable="false"
             android:gravity="center"
-            android:orientation="vertical"/>
+            android:orientation="vertical" />
     </RelativeLayout>
 
     <Button

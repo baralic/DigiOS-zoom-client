@@ -5,13 +5,18 @@
 
     <ImageView
         android:id="@+id/videoList_indicator"
+        android:background="@drawable/selector_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:nextFocusLeft="@+id/leaveButton"
         android:focusable="true"
-        android:src="@drawable/arrow_down_normal" />
+        android:src="@drawable/arrow_down_normal"
+        android:importantForAccessibility="no" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/videoList"
+        android:descendantFocusability="afterDescendants"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clipChildren="true"

@@ -9,4 +9,5 @@
     <color name="secondaryDark">#FF000000</color>
     <color name="secondaryDarkVariant">#575757</color>
     <color name="warning">#ff3c3c</color>
+    <color name="success">#00ff00</color>
 </resources>

@@ -4,17 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView.OnItemClickListener
-import android.widget.AdapterView.VISIBLE
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import us.zoom.sdk.InMeetingAnnotationController
 import us.zoom.sdk.InMeetingAudioController
@@ -39,6 +37,8 @@ import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.view.adapter.Simp
 import us.zoom.sdksample.inmeetingfunction.livetranscription.RequestLiveTranscriptionDialog
 import us.zoom.sdksample.ui.QAActivity
 import us.zoom.sdksample.util.Constants
+import us.zoom.sdksample.util.isHold
+import us.zoom.sdksample.util.mapTo
 
 class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysProperty {
 
@@ -46,9 +46,9 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
 
     private lateinit var root: View
 
-    private lateinit var topBar: View
-    private lateinit var meetingNumberText: TextView
-    private lateinit var meetingPasswordText: TextView
+    private var topBar: View? = null
+    private var meetingNumberText: TextView? = null
+    private var meetingPasswordText: TextView? = null
     private lateinit var leaveButton: View
     private lateinit var backButton: View
     lateinit var switchCameraView: View
@@ -121,10 +121,10 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
         root = LayoutInflater.from(context).inflate(R.layout.layout_meeting_option, this, false)
         addView(root)
 
-        topBar = findViewById(R.id.top_bar)
-        meetingNumberText = topBar.findViewById(R.id.meetingNumber)
-        meetingPasswordText = topBar.findViewById(R.id.meetingPassword)
-        topBar.visibility = GONE
+        // topBar = findViewById(R.id.top_bar)
+        meetingNumberText = topBar?.findViewById(R.id.meetingNumber)
+        meetingPasswordText = topBar?.findViewById(R.id.meetingPassword)
+        topBar?.visibility = GONE
 
         bottomBar = findViewById(R.id.bottom_bar)
         backButton = bottomBar.findViewById(R.id.backButton)
@@ -159,14 +159,18 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
         chatButton.setOnClickListener(this)
         moreButton.setOnClickListener(this)
         speakerButton.setOnClickListener(this)
-
-        audioButton.setOnLongClickListener {
-            if (audioController?.isAudioConnected == true) {
-                callback?.onClickDisconnectAudio()
-            }
-            true
-        }
     }
+
+    fun mapKeyDown(keyCode: Int, event: KeyEvent): KeyEvent? =
+        if (this.hasFocus() && keyCode.isHold) {
+            callback?.onClickDisconnectAudio()
+            event.mapTo(keyCode)
+        }
+        else null
+
+    fun mapKeyUp(keyCode: Int, event: KeyEvent): KeyEvent? =
+        if (this.hasFocus() && keyCode.isHold) event.mapTo(keyCode)
+        else null
 
     fun hideOrShowToolbar(hidden: Boolean) {
         visibility = VISIBLE
@@ -190,18 +194,18 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
     val bottomBarTop: Int
         get() = bottomBar.top
     val topBarHeight: Int
-        get() = topBar.measuredHeight
+        get() = topBar?.measuredHeight ?: 0
 
     fun updateMeetingNumber(text: String?) {
-        meetingNumberText.text = text
+        meetingNumberText?.text = text
     }
 
     fun updateMeetingPassword(text: String?) {
         if (text?.isNotEmpty() == true) {
-            meetingPasswordText.visibility = VISIBLE
-            meetingPasswordText.text = text
+            meetingPasswordText?.visibility = VISIBLE
+            meetingPasswordText?.text = text
         } else {
-            meetingPasswordText.visibility = GONE
+            meetingPasswordText?.visibility = GONE
         }
     }
 
