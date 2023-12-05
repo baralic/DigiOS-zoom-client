@@ -2,6 +2,7 @@ package us.zoom.sdksample.inmeetingfunction.customizedmeetingui.user;
 
 import java.util.List;
 
+import us.zoom.sdk.InMeetingChatMessage;
 import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.BaseCallback;
 import us.zoom.sdksample.inmeetingfunction.customizedmeetingui.BaseEvent;
@@ -16,6 +17,8 @@ public class MeetingUserCallback extends BaseCallback<MeetingUserCallback.UserEv
         void onMeetingUserLeave(List<Long> list);
 
         void onSilentModeChanged(boolean inSilentMode);
+
+        void onChatMessageReceived( InMeetingChatMessage iMeetingChatMessage);
     }
 
     static MeetingUserCallback instance;
@@ -65,5 +68,11 @@ public class MeetingUserCallback extends BaseCallback<MeetingUserCallback.UserEv
             }
         }
 
+        @Override
+        public void onChatMessageReceived(InMeetingChatMessage inMeetingChatMessage) {
+            for (UserEvent event : callbacks) {
+                event.onChatMessageReceived(inMeetingChatMessage);
+            }
+        }
     };
 }
