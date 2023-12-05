@@ -36,6 +36,9 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import us.zoom.sdk.BOControllerError
 import us.zoom.sdk.IBOAdmin
 import us.zoom.sdk.IBOAttendee
@@ -56,6 +59,7 @@ import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscripti
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionOperationType
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionStatus
 import us.zoom.sdk.InMeetingService
+import us.zoom.sdk.InMeetingServiceListener
 import us.zoom.sdk.InMeetingUserInfo
 import us.zoom.sdk.MeetingService
 import us.zoom.sdk.MeetingStatus
@@ -118,7 +122,6 @@ import us.zoom.sdksample.util.Constants.Preferences
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.KeyboardFocusChangeListener
 import us.zoom.sdksample.util.hideSystemBars
-import us.zoom.sdksample.util.mapTo
 
 open class MyMeetingActivity : FragmentActivity(),
     View.OnClickListener,
@@ -178,6 +181,17 @@ open class MyMeetingActivity : FragmentActivity(),
         arrayOf(R.id.edit_pwd, R.id.edit_name)
     )
 
+    private val inMeetingServiceListener = object : SimpleInMeetingListener() {
+
+        override fun onActiveSpeakerVideoUserChanged(userId: Long) {
+            CoroutineScope(Dispatchers.Main).launch {
+                videoListLayout.onSpeakerChanged(userId)
+            }
+
+            super.onActiveSpeakerVideoUserChanged(userId)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemBars()
@@ -185,6 +199,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
         meetingService = zoomSDK.meetingService
         inMeetingService = zoomSDK.inMeetingService
+        inMeetingService.addListener(inMeetingServiceListener)
 
         intent.extras?.let { from = it.getInt("from") }
         meetingAudioHelper = MeetingAudioHelper(audioCallBack)
@@ -346,8 +361,9 @@ open class MyMeetingActivity : FragmentActivity(),
             return true
         }
     }
+
     private var currentPinUser: Long = 0
-    var pinVideoListener = ItemClickListener { view, position, userId ->
+    private var pinVideoListener = ItemClickListener { view, position, userId ->
         if (currentLayoutType == LAYOUT_TYPE_VIEW_SHARE || currentLayoutType == LAYOUT_TYPE_SHARING_VIEW) {
             return@ItemClickListener
         }
@@ -691,20 +707,20 @@ open class MyMeetingActivity : FragmentActivity(),
         showLocalShareContent(true)
     }
 
-    private fun updateAttendeeVideos(userlist: List<Long>, action: Int) {
+    private fun updateAttendeeVideos(userList: List<Long>, action: Int) {
         when (action) {
             0 -> {
-                attenderVideoAdapter.setUserList(userlist)
+                attenderVideoAdapter.setUserList(userList)
                 attenderVideoAdapter.notifyDataSetChanged()
             }
 
             1 -> {
-                attenderVideoAdapter.addUserList(userlist)
+                attenderVideoAdapter.addUserList(userList)
             }
 
             else -> {
-                val userId = attenderVideoAdapter.getSelectedUserId()
-                if (userlist.contains(userId)) {
+                val userId = attenderVideoAdapter.selectedUserId
+                if (userList.contains(userId)) {
                     val inMeetingUserList = inMeetingService.inMeetingUserList
                     if (inMeetingUserList.size > 0) {
                         defaultVideoViewManager?.removeAllVideoUnits()
@@ -712,7 +728,7 @@ open class MyMeetingActivity : FragmentActivity(),
                         defaultVideoViewManager?.addAttendeeVideoUnit(inMeetingUserList[0], renderInfo)
                     }
                 }
-                attenderVideoAdapter.removeUserList(userlist)
+                attenderVideoAdapter.removeUserList(userList)
             }
         }
     }

@@ -22,6 +22,8 @@ import us.zoom.sdksample.util.mapTo
 
 class VideoListLayout : LinearLayout, View.OnClickListener {
 
+    fun RecyclerView.adapter(): AttenderVideoAdapter = this.adapter as AttenderVideoAdapter
+
     private lateinit var indicator: View
     lateinit var videoList: RecyclerView
 
@@ -75,6 +77,10 @@ class VideoListLayout : LinearLayout, View.OnClickListener {
 
     fun setAdapter(adapter: AttenderVideoAdapter) {
         videoList.adapter = adapter
+    }
+
+    fun onSpeakerChanged(userId: Long) {
+        videoList.adapter().onSpeakerChanged(userId, videoList)
     }
 
     override fun onClick(v: View) {
