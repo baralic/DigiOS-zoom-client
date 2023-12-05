@@ -35,7 +35,9 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.qualcomm.snapdragon.spaces.splashscreen.SplashScreenActivity
 import com.unity3d.player.UnityPlayer
+import com.unity3d.player.UnityPlayerActivity
 import us.zoom.sdk.BOControllerError
 import us.zoom.sdk.IBOAdmin
 import us.zoom.sdk.IBOAttendee
@@ -57,6 +59,7 @@ import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscripti
 import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscriptionListener
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionOperationType
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionStatus
+import us.zoom.sdk.InMeetingNotificationHandle
 import us.zoom.sdk.InMeetingService
 import us.zoom.sdk.InMeetingUserInfo
 import us.zoom.sdk.MeetingService
@@ -164,7 +167,6 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var mVideoListView: RecyclerView
     private lateinit var localShareContentView: MobileRTCVideoView
     private lateinit var meetingOptionBar: MeetingOptionBar
-    private lateinit var mUnityPlayer: UnityPlayer
 
     private lateinit var mDefaultVideoViewMgr: MobileRTCVideoViewManager
     private lateinit var meetingAudioHelper: MeetingAudioHelper
@@ -175,6 +177,7 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var mInMeetingService: InMeetingService
     private lateinit var smsService: SmsService
     private lateinit var mScreenInfoData: Intent
+    private lateinit var mUnityPlayer: UnityPlayer
 
     private lateinit var mAdapter: AttenderVideoAdapter
     private lateinit var gestureDetector: GestureDetector
@@ -241,6 +244,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mUnityPlayer = UnityPlayer(this)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -252,7 +256,6 @@ open class MyMeetingActivity : FragmentActivity(),
         intent.extras?.let {
             from = it.getInt("from")
         }
-        mUnityPlayer = UnityPlayer(this)
         buildUi()
 
     }
@@ -1178,14 +1181,13 @@ open class MyMeetingActivity : FragmentActivity(),
         if(iMeetingChatMessage?.content == "#openvaia"){
             mUnityPlayer.windowFocusChanged(true)
             mUnityPlayer.requestFocus()
-            UnityPlayer.UnitySendMessage("DataExchanger", "ShowMessage", "${iMeetingChatMessage.content}")
             mUnityPlayer.resume()
             setContentView(mUnityPlayer)
         } else if(iMeetingChatMessage?.content == "#closevaia"){
-            mUnityPlayer.windowFocusChanged(false)
             mUnityPlayer.pause()
-            buildUi()
-
+            intent = Intent(this, MyMeetingActivity::class.java)
+            intent.putExtra("from", MyMeetingActivity.JOIN_FROM_UNLOGIN)
+            startActivity(intent)
         }
     }
 

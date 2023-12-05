@@ -2,6 +2,7 @@ package us.zoom.sdksample.ui
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -18,7 +19,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.view.isVisible
+import com.qualcomm.snapdragon.spaces.splashscreen.SplashScreenActivity
 import com.unity3d.player.UnityPlayer
+import com.unity3d.player.UnityPlayerActivity
 import us.zoom.sdk.InMeetingNotificationHandle
 import us.zoom.sdk.JoinMeetingOptions
 import us.zoom.sdk.JoinMeetingParams
@@ -282,6 +285,10 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
     }
 
     fun onClickUnity(view: View?) {
+//        val intent = Intent(this, SplashScreenActivity::class.java)
+//        intent.action = Intent.ACTION_MAIN
+//        intent.addCategory("snapdragon.intent.category.SPACES")
+//        startActivity(intent)
         mUnityPlayer.windowFocusChanged(true)
         mUnityPlayer.requestFocus()
         UnityPlayer.UnitySendMessage("DataExchanger", "ShowMessage", "ThisMessageWasPassedFromAndroid")

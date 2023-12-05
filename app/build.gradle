@@ -8,6 +8,7 @@ android {
     viewBinding {
         enabled = true
     }
+    packagingOptions { pickFirst 'lib/*/libc++_shared.so' }
     
     defaultConfig {
         applicationId "us.zoom.sdkexample"
@@ -18,9 +19,10 @@ android {
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
 
-//        ndk {
-//            abiFilters "arm64-v8a"
-//        }
+        ndk {
+            //noinspection ChromeOsAbiSupport
+            abiFilters "arm64-v8a"
+        }
     }
 
     buildTypes {
@@ -30,7 +32,7 @@ android {
         }
 
         debug {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.cfg'
         }
 
@@ -54,8 +56,17 @@ dependencies {
     implementation project(':commonlib')
     implementation project(':mobilertc')
     implementation 'androidx.core:core-ktx:1.8.0'
-    implementation files('../libs/launcher-debug.aar')
     implementation files('../libs/unityLibrary-debug.aar')
+    implementation files('../libs/SpacesServicesHelper.aar')
+    implementation files('../libs/SpacesActivities.aar')
+    implementation files('../libs/libopenxr_loader.aar')
+    implementation files('../libs/cxr-clientlib-csharp-android-lib.aar')
+    implementation files('../libs/egl-cxr-unity-plugin-android-lib.aar')
+    implementation files('../libs/launcher-debug.aar')
+    def nav_version = "2.2.2"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 }
 
 configurations.all {

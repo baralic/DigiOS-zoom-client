@@ -70,6 +70,10 @@
             android:name="com.digilens.android.BUILT_FOR_GLASSES"
             android:value="true" />
 
+        <activity android:name="com.unity3d.player.UnityPlayerActivity"
+            android:exported="true">
+        </activity>
+
         <activity
             android:name="us.zoom.sdksample.ui.InitAuthSDKActivity"
             android:configChanges="screenSize|orientation|keyboardHidden|keyboard"
@@ -78,9 +82,10 @@
             android:windowSoftInputMode="adjustNothing"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.DigiOsZoomTheme">
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
@@ -143,7 +148,8 @@
             android:configChanges="screenSize"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/Theme.DigiOsZoomTheme" />
+            android:theme="@style/Theme.DigiOsZoomTheme"
+            />
 
         <activity
             android:name=".ui.MeetingSettingActivity"
