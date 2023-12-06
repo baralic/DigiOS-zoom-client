@@ -169,14 +169,16 @@ public class MeetingShareHelper {
 
     public void showShareActionPopupWindow() {
         final SimpleMenuAdapter menuAdapter = new SimpleMenuAdapter(activity);
+        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_CAMERA, "Camera"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SCREEN, "Screen"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_IMAGE, "Image"));
-        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_WEBVIEW, "Web url"));
-        menuAdapter.addItem(new SimpleMenuItem(MENU_WHITE_BOARD, "WhiteBoard"));
         menuAdapter.addItem(new SimpleMenuItem(MENU_PDF, "PDF"));
-        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SOURCE, "External Share Source"));
-        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SOURCE_WITH_AUDIO, "External Share/Audio Source "));
-        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_CAMERA, "Camera"));
+            // TODO: Not needed for ARGO demo
+            //        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_WEBVIEW, "Web url"));
+            //        menuAdapter.addItem(new SimpleMenuItem(MENU_WHITE_BOARD, "WhiteBoard"));
+            //        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SOURCE, "External Share Source"));
+            //        menuAdapter.addItem(new SimpleMenuItem(MENU_SHARE_SOURCE_WITH_AUDIO, "External Share/Audio Source "));
+
 
         View popupWindowLayout = LayoutInflater.from(activity).inflate(R.layout.popupwindow, null);
 
