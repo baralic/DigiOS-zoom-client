@@ -12,24 +12,24 @@
         <item name="android:windowBackground">@color/background</item>
     </style>
 
-    <style name="DigiOsDialog" parent="ZMDialog">
+    <style name="DigiOS.Dialog" parent="ZMDialog">
         <item name="android:windowBackground">@drawable/zm_dialog_bg</item>
-        <item name="android:buttonStyle">@style/Basic.ButtonStyle</item>
+        <item name="android:buttonStyle">@style/DigiOS.ButtonStyle</item>
         <item name="android:textViewStyle">@style/ZMTextView</item>
-        <item name="android:editTextStyle">@style/Basic.EditTextStyle</item>
+        <item name="android:editTextStyle">@style/DigiOS.EditTextStyle</item>
         <item name="android:windowTitleBackgroundStyle">@style/ZMWindowTitleBackground</item>
         <item name="android:spinnerStyle">@style/ZMSpinner</item>
         <item name="android:listSeparatorTextViewStyle">@style/ZMListSeparator</item>
         <item name="android:listViewStyle">@style/ZMListView</item>
         <item name="android:scrollViewStyle">@style/ZMScrollView</item>
-        <item name="android:checkboxStyle">@style/Basic.CheckboxStyle</item>
+        <item name="android:checkboxStyle">@style/DigiOS.CheckboxStyle</item>
         <item name="android:progressBarStyle">@style/ZMProgressBar</item>
         <item name="android:progressBarStyleHorizontal">@style/ZMProgressBar.Horizontal</item>
         <item name="android:progressBarStyleSmall">@style/ZMProgressBar.Small</item>
         <item name="zm_tipAppearance">@style/ZMTip</item>
     </style>
 
-    <style name="Basic.EditTextStyle" parent="@style/Widget.AppCompat.EditText">
+    <style name="DigiOS.EditTextStyle" parent="@style/Widget.AppCompat.EditText">
         <item name="android:imeOptions">flagNoExtractUi|actionNext</item>
         <item name="android:textColor">@color/secondary</item>
         <item name="android:textColorHint">@color/secondaryVariant</item>
@@ -46,7 +46,7 @@
         <item name="android:importantForAutofill">no</item>
     </style>
 
-    <style name="Basic.CheckboxStyle" parent="@style/Widget.AppCompat.CompoundButton.CheckBox">
+    <style name="DigiOS.CheckboxStyle" parent="@style/Widget.AppCompat.CompoundButton.CheckBox">
         <item name="android:background">@drawable/selector_checkbox</item>
         <item name="android:buttonTint">@color/primary</item>
         <item name="android:textColor">@color/secondary</item>
@@ -59,28 +59,28 @@
         <item name="android:textAllCaps">true</item>
     </style>
 
-    <style name="Basic.ButtonStyle" parent="@style/Widget.AppCompat.Button">
+    <style name="DigiOS.ButtonStyle" parent="@style/Widget.AppCompat.Button">
         <item name="android:background">@drawable/selector_button</item>
         <item name="android:textColor">@color/secondaryDark</item>
         <item name="android:minWidth">150dp</item>
         <item name="android:textAllCaps">true</item>
     </style>
 
-    <style name="Basic.ButtonStyle.Warning" parent="Basic.ButtonStyle">
+    <style name="DigiOS.ButtonStyle.Warning" parent="DigiOS.ButtonStyle">
         <item name="android:background">@drawable/selector_checkbox</item>
         <item name="android:textColor">@color/warning</item>
         <item name="android:minWidth">10dp</item>
         <item name="android:padding">10dp</item>
     </style>
 
-    <style name="Basic.ButtonStyle.Normal" parent="Basic.ButtonStyle">
+    <style name="DigiOS.ButtonStyle.Normal" parent="DigiOS.ButtonStyle">
         <item name="android:background">@drawable/selector_checkbox</item>
         <item name="android:textColor">@color/secondary</item>
         <item name="android:minWidth">10dp</item>
         <item name="android:padding">10dp</item>
     </style>
 
-    <style name="Basic.Progress" parent="@android:style/Widget.ProgressBar.Large.Inverse">
+    <style name="DigiOS.Progress" parent="@android:style/Widget.ProgressBar.Large.Inverse">
         <item name="colorControlActivated">@color/primary</item>
         <item name="android:progressTint">@color/primary</item>
         <item name="android:progressBackgroundTint">@color/secondary</item>

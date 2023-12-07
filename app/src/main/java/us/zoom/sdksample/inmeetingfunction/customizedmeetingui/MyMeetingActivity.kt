@@ -22,6 +22,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.BaseInputConnection
@@ -59,7 +60,6 @@ import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscripti
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionOperationType
 import us.zoom.sdk.InMeetingLiveTranscriptionController.MobileRTCLiveTranscriptionStatus
 import us.zoom.sdk.InMeetingService
-import us.zoom.sdk.InMeetingServiceListener
 import us.zoom.sdk.InMeetingUserInfo
 import us.zoom.sdk.MeetingService
 import us.zoom.sdk.MeetingStatus
@@ -953,7 +953,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
         builder?.dismiss()
 
-        val builder = Dialog(this, R.style.DigiOsDialog)
+        val builder = Dialog(this, R.style.DigiOS_Dialog)
         this.builder = builder
 
         builder.setTitle("Need password or displayName")
@@ -1041,27 +1041,60 @@ open class MyMeetingActivity : FragmentActivity(),
         }
     }
 
-    private fun showLeaveMeetingDialog() = with(AlertDialog.Builder(this)) {
-        if (inMeetingService.isMeetingConnected) {
-            if (inMeetingService.isMeetingHost) {
-                setTitle(R.string.dialog_exit_host)
-                setPositiveButton(R.string.dialog_action_end) { _, _ -> leave(true) }
-                setNeutralButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
-            } else {
-                setTitle(R.string.dialog_exit_attendee)
-                setPositiveButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
+    private fun showLeaveMeetingDialog() {
+        val isBreakOut = inMeetingService.inMeetingBOController.isInBOMeeting
+        val isConnected = inMeetingService.isMeetingConnected
+        val isHost = inMeetingService.isMeetingHost
+        val isHostConnected = isConnected && isHost
+
+        builder?.dismiss()
+
+        val builder = Dialog(this, R.style.DigiOS_Dialog)
+        this.builder = builder
+
+        val onDialogClickListener = OnClickListener {
+            when (it.id) {
+                R.id.positive -> leave(isHostConnected)
+                R.id.neutral -> leave(false)
+                R.id.negative -> if (isBreakOut) leaveBo()
             }
-        } else {
-            setTitle(R.string.dialog_exit_attendee)
-            setPositiveButton(R.string.leave_meeting_label) { _, _ -> leave(false) }
+            builder.dismiss()
         }
 
-        if (inMeetingService.inMeetingBOController.isInBOMeeting) {
-            setNegativeButton(R.string.dialog_action_leave_breakout) { _, _ -> leaveBo() }
-        } else {
-            setNegativeButton(android.R.string.cancel, null)
+        builder.setContentView(R.layout.dialog_default)
+
+        with(builder.findViewById<TextView>(R.id.title)) {
+            setText(
+                if (isHostConnected) R.string.dialog_exit_host
+                else R.string.dialog_exit_attendee
+            )
         }
-        create().show()
+
+        with(builder.findViewById<Button>(R.id.positive)) {
+            setOnClickListener(onDialogClickListener)
+            setText(
+                if (isHostConnected) R.string.dialog_action_end
+                else R.string.leave_meeting_label
+            )
+        }
+
+        with(builder.findViewById<Button>(R.id.neutral)) {
+            setOnClickListener(onDialogClickListener)
+            visibility = if (isHostConnected) View.VISIBLE else View.GONE
+            setTitle(R.string.leave_meeting_label)
+        }
+
+        with(builder.findViewById<Button>(R.id.negative)) {
+            setOnClickListener(onDialogClickListener)
+            setText(
+                if (isBreakOut) R.string.dialog_action_leave_breakout
+                else android.R.string.cancel
+            )
+        }
+
+        builder.setCancelable(false)
+        builder.setCanceledOnTouchOutside(false)
+        builder.show()
     }
 
     private fun leave(end: Boolean) {
