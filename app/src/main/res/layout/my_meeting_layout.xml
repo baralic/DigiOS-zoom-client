@@ -69,7 +69,7 @@
 
     <Button
         android:id="@+id/joinBreakoutButton"
-        style="@style/Basic.ButtonStyle"
+        style="@style/DigiOS.ButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -83,7 +83,7 @@
 
     <Button
         android:id="@+id/requestHelpButton"
-        style="@style/Basic.ButtonStyle"
+        style="@style/DigiOS.ButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -145,7 +145,7 @@
 
         <Button
             android:id="@+id/btn_lan1"
-            style="@style/Basic.ButtonStyle"
+            style="@style/DigiOS.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
@@ -157,7 +157,7 @@
 
         <Button
             android:id="@+id/btn_lan2"
-            style="@style/Basic.ButtonStyle"
+            style="@style/DigiOS.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selector_lans"

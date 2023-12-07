@@ -49,7 +49,7 @@
 
         <EditText
             android:id="@+id/edit_join_number"
-            style="@style/Basic.EditTextStyle"
+            style="@style/DigiOS.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -64,7 +64,7 @@
 
         <EditText
             android:id="@+id/edit_join_name"
-            style="@style/Basic.EditTextStyle"
+            style="@style/DigiOS.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -76,7 +76,7 @@
 
         <EditText
             android:id="@+id/edit_join_meeting_token"
-            style="@style/Basic.EditTextStyle"
+            style="@style/DigiOS.EditTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -89,7 +89,7 @@
 
         <CheckBox
             android:id="@+id/check_remember"
-            style="@style/Basic.CheckboxStyle"
+            style="@style/DigiOS.CheckboxStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -100,7 +100,7 @@
 
         <Button
             android:id="@+id/btn_join_meeting"
-            style="@style/Basic.ButtonStyle"
+            style="@style/DigiOS.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -111,7 +111,7 @@
 
         <Button
             android:id="@+id/btnSettings"
-            style="@style/Basic.ButtonStyle"
+            style="@style/DigiOS.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
@@ -124,7 +124,7 @@
 
         <Button
             android:id="@+id/btn_return"
-            style="@style/Basic.ButtonStyle"
+            style="@style/DigiOS.ButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:nextFocusLeft="@id/btn_join_meeting"

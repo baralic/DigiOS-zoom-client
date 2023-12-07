@@ -11,7 +11,7 @@
 
     <TextView
         android:id="@+id/audioButton"
-        style="@style/Basic.ButtonStyle.Normal"
+        style="@style/DigiOS.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -26,7 +26,7 @@
 
     <TextView
         android:id="@+id/cameraButton"
-        style="@style/Basic.ButtonStyle.Normal"
+        style="@style/DigiOS.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -40,7 +40,7 @@
 
     <TextView
         android:id="@+id/shareButton"
-        style="@style/Basic.ButtonStyle.Normal"
+        style="@style/DigiOS.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -54,7 +54,7 @@
 
     <TextView
         android:id="@+id/chatButton"
-        style="@style/Basic.ButtonStyle.Normal"
+        style="@style/DigiOS.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -69,7 +69,7 @@
 
     <TextView
         android:id="@+id/moreActionButton"
-        style="@style/Basic.ButtonStyle.Normal"
+        style="@style/DigiOS.ButtonStyle.Normal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
