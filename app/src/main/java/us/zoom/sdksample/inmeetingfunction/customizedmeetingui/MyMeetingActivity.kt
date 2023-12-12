@@ -450,9 +450,7 @@ open class MyMeetingActivity : FragmentActivity(),
             meetingOptionBar.updateMeetingNumber(inMeetingService.currentMeetingNumber.toString() + "")
             meetingOptionBar.updateMeetingPassword(inMeetingService.meetingPassword)
             meetingOptionBar.refreshToolbar()
-
-            // TODO: Not needed for demo
-            //  appsView.setVisibility(View.VISIBLE)
+            meetingOptionBar.hideOrShowToolbar(true)
         } else {
             if (meetingService?.meetingStatus == MeetingStatus.MEETING_STATUS_CONNECTING) {
                 connectingLabel.visibility = View.VISIBLE
