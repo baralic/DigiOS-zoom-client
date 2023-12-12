@@ -166,17 +166,7 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
         if (this.hasFocus() && keyCode.isHold) {
             callback?.onClickDisconnectAudio()
             event.mapTo(keyCode)
-        } else {
-            null
-        }
-//            .also {
-//            hideOrShowToolbar(false)
-//            if (isShowing.not()) {
-//                handler.postDelayed({
-//                    this@MeetingOptionBar.requestFocusFromTouch()
-//                }, 200)
-//            }
-//        }
+        } else null
 
     fun mapKeyUp(keyCode: Int, event: KeyEvent): KeyEvent? =
         if (this.hasFocus() && keyCode.isHold) event.mapTo(keyCode)
