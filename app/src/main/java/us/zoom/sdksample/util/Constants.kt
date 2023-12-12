@@ -42,12 +42,12 @@ object Constants {
             const val PROPERTY_USE_CAPTIONS = "debug.property.digilens.ui.captions"
             const val PROPERTY_USE_WHITEBOARD = "debug.property.digilens.ui.whiteboard"
             const val PROPERTY_USE_MORE = "debug.property.digilens.ui.more"
+            const val PROPERTY_AUTO_HIDE_DELAY = "debug.property.digilens.ui.delay"
         }
 
         fun getString(key: String, default: String): String? = String.getSystemProperty(key, default)
-        fun getBoolean(key: String): Boolean = Boolean.getSystemProperty(key).also {
-            Log.d("Constants", "GetProp $key=$it")
-        }
+        fun getBoolean(key: String): Boolean = Boolean.getSystemProperty(key)
+        fun getInt(key: String, default: Int): Int = Int.getSystemProperty(key, default)
     }
 
     @JvmDefaultWithCompatibility

@@ -42,6 +42,23 @@ fun Boolean.Companion.getSystemProperty(key: String, default: Boolean = false): 
     return default
 }
 
+/**
+ * Extension for extracting [Int] value from the [android.os.SystemProperties].
+ */
+@SuppressLint("PrivateApi")
+fun Int.Companion.getSystemProperty(key: String, default: Int = 0): Int {
+    try {
+        val clazz = Class.forName("android.os.SystemProperties")
+        val method = clazz.getDeclaredMethod("getBoolean", String::class.java, Boolean::class.java)
+        return method.invoke(null, key, default) as Int
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    return default
+}
+
 fun Activity.hideSystemBars() {
     WindowCompat.getInsetsController(window, window.decorView).apply {
         systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE

@@ -14,6 +14,7 @@ import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.FragmentManager
 import us.zoom.sdk.InMeetingAnnotationController
 import us.zoom.sdk.InMeetingAudioController
 import us.zoom.sdk.InMeetingChatController
@@ -165,8 +166,17 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
         if (this.hasFocus() && keyCode.isHold) {
             callback?.onClickDisconnectAudio()
             event.mapTo(keyCode)
+        } else {
+            null
         }
-        else null
+//            .also {
+//            hideOrShowToolbar(false)
+//            if (isShowing.not()) {
+//                handler.postDelayed({
+//                    this@MeetingOptionBar.requestFocusFromTouch()
+//                }, 200)
+//            }
+//        }
 
     fun mapKeyUp(keyCode: Int, event: KeyEvent): KeyEvent? =
         if (this.hasFocus() && keyCode.isHold) event.mapTo(keyCode)
@@ -175,16 +185,15 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
     fun hideOrShowToolbar(hidden: Boolean) {
         visibility = VISIBLE
         bringToFront()
-        // TODO: Not needed for ARGO Demo
-        //  removeCallbacks(autoHidden)
-        //  if (hidden) {
-        //      visibility = INVISIBLE
-        //  } else {
-        //      postDelayed(autoHidden, 3000)
-        //      visibility = VISIBLE
-        //      bringToFront()
-        //  }
-        //  callback?.onHidden(hidden)
+        removeCallbacks(autoHidden)
+        if (hidden) {
+            visibility = INVISIBLE
+        } else {
+            postDelayed(autoHidden, getInt(Constants.KEY_AUTO_JOIN, 5000).toLong())
+            visibility = VISIBLE
+            bringToFront()
+        }
+        callback?.onHidden(hidden)
     }
 
     val bottomBarHeight: Int
