@@ -11,6 +11,8 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.PersistableBundle
 import android.os.Process
 import android.provider.Settings
@@ -259,6 +261,7 @@ open class MyMeetingActivity : FragmentActivity(),
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+
         var result = meetingOptionBar.mapKeyDown(keyCode, event)
         result?.let {  return super.onKeyDown(it.keyCode, it) }
 
@@ -268,10 +271,13 @@ open class MyMeetingActivity : FragmentActivity(),
             return true
         }
 
+        meetingOptionBar.hideOrShowToolbar(false)
+
         return super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+
         var result = meetingOptionBar.mapKeyUp(keyCode, event)
         result?.let {  return super.onKeyUp(it.keyCode, it) }
 
