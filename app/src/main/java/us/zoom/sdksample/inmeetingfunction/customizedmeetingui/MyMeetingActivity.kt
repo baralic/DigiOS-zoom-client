@@ -192,10 +192,11 @@ open class MyMeetingActivity : FragmentActivity(),
     private val inMeetingServiceListener = object : SimpleInMeetingListener() {
 
         override fun onActiveSpeakerVideoUserChanged(userId: Long) {
-            CoroutineScope(Dispatchers.Main).launch {
-                videoListLayout.onSpeakerChanged(userId)
-            }
-
+            if (inMeetingService.isMyself(userId).not()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    videoListLayout.onSpeakerChanged(userId)
+                }
+            } else Log.d(TAG, ">>> Skip myself!")
             super.onActiveSpeakerVideoUserChanged(userId)
         }
     }

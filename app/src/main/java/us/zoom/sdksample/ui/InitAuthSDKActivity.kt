@@ -81,7 +81,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         numberEdit.setText(getMeetingId(prefs))
         numberEdit.onFocusChangeListener = focusChangeListener
         nameEdit = findViewById(R.id.edit_join_name)
-        nameEdit.setText(getUsername(prefs))
+        nameEdit.setText(getUsername())
         nameEdit.onFocusChangeListener = focusChangeListener
         meetingTokenEdit = findViewById(R.id.edit_join_meeting_token)
         meetingTokenEdit.onFocusChangeListener = focusChangeListener
@@ -92,6 +92,13 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         }
         JwtFetcher(this).execute()
         showProgressPanel(true)
+    }
+
+    private fun getUsername(): String {
+        val username = getUsername(prefs)
+        return username.ifEmpty {
+            getString(SysProperty.PROPERTY_ZOOM_USERNAME, "Endava Demo")!!
+        }
     }
 
     private fun prepareMeeting(intent: Intent, prefs: SharedPreferences) {
@@ -255,6 +262,7 @@ class InitAuthSDKActivity : Activity(), View.OnClickListener, InitAuthSDKCallbac
         params.meetingNo = number
         params.displayName = name
         params.join_token = zoomMeetingToken
+        mZoomSDK.meetingSettingsHelper.setAutoConnectVoIPWhenJoinMeeting(true)
         val options = JoinMeetingOptions()
         mZoomSDK.meetingService.joinMeetingWithParams(
             this, params, ZoomMeetingUISettingHelper.getJoinMeetingOptions()
