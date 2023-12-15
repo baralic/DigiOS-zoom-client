@@ -37,8 +37,12 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.unity3d.player.UnityPlayer
+import com.unity3d.player.UnityPlayerActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import us.zoom.sdk.BOControllerError
 import us.zoom.sdk.IBOAdmin
@@ -54,6 +58,8 @@ import us.zoom.sdk.IZoomRetrieveSMSVerificationCodeHandler
 import us.zoom.sdk.IZoomSDKVideoRawDataDelegate
 import us.zoom.sdk.IZoomSDKVideoRawDataDelegate.UserRawDataStatus
 import us.zoom.sdk.IZoomVerifySMSVerificationCodeHandler
+import us.zoom.sdk.InMeetingChatController
+import us.zoom.sdk.InMeetingChatMessage
 import us.zoom.sdk.InMeetingEventHandler
 import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscriptionLanguage
 import us.zoom.sdk.InMeetingLiveTranscriptionController.InMeetingLiveTranscriptionListener
@@ -118,6 +124,7 @@ import us.zoom.sdksample.ui.BreakoutRoomsAdminActivity
 import us.zoom.sdksample.ui.InitAuthSDKActivity
 import us.zoom.sdksample.ui.LoginUserStartJoinMeetingActivity
 import us.zoom.sdksample.ui.UIUtil.getBoNameUserNameByUserId
+import us.zoom.sdksample.ui.UnityWrapperActivity
 import us.zoom.sdksample.util.Constants.Preferences
 import us.zoom.sdksample.util.Constants.SysProperty
 import us.zoom.sdksample.util.KeyboardFocusChangeListener
@@ -171,6 +178,7 @@ open class MyMeetingActivity : FragmentActivity(),
     private lateinit var meetingShareHelper: MeetingShareHelper
     private lateinit var remoteControlHelper: MeetingRemoteControlHelper
     private lateinit var screenInfoData: Intent
+    private lateinit var mInMeetingChatController: InMeetingChatController
 
     private var from = 0
     private var currentLayoutType = -1
@@ -255,7 +263,7 @@ open class MyMeetingActivity : FragmentActivity(),
             this, windowManager.defaultDisplay.width, pinVideoListener
         )
         videoListLayout.setAdapter(attenderVideoAdapter)
-
+        mInMeetingChatController = inMeetingService.inMeetingChatController
         refreshToolbar()
     }
 
@@ -366,6 +374,29 @@ open class MyMeetingActivity : FragmentActivity(),
             return true
         }
     }
+
+    override fun onChatMessageReceived(iMeetingChatMessage: InMeetingChatMessage?) {
+        when (iMeetingChatMessage?.content) {
+            START_TRAINING_COMMAND, START_TRAINING_COMMAND_SHORT -> {
+                val intent = Intent(this, UnityWrapperActivity::class.java)
+                intent.putExtra("messageForUnity", START_TRAINING_COMMAND)
+                startActivity(intent)
+            }
+
+            SHOW_ZOOM_COMMAND, SHOW_ZOOM_COMMAND_SHORT -> {
+                intent = Intent(this, MyMeetingActivity::class.java)
+                startActivity(intent)
+            }
+
+            SHOW_EXPLOSION_COMMAND, SHOW_EXPLOSION_COMMAND_SHORT -> {
+                val intent = Intent(this, UnityWrapperActivity::class.java)
+                intent.putExtra("messageForUnity", SHOW_EXPLOSION_COMMAND)
+                startActivity(intent)
+            }
+
+        }
+    }
+
 
     private var currentPinUser: Long = 0
     private var pinVideoListener = ItemClickListener { view, position, userId ->
@@ -1708,6 +1739,13 @@ open class MyMeetingActivity : FragmentActivity(),
         protected const val REQUEST_SYSTEM_ALERT_WINDOW = 1002
         protected const val REQUEST_SYSTEM_ALERT_WINDOW_FOR_MINIWINDOW = 1003
         protected const val REQUEST_PHONE_STATUS_BLUETOOTH = 1004
+
+        const val START_TRAINING_COMMAND = "#starttraining"
+        const val SHOW_ZOOM_COMMAND = "#showzoom"
+        const val SHOW_EXPLOSION_COMMAND = "#showexplosion"
+        const val START_TRAINING_COMMAND_SHORT = "#st"
+        const val SHOW_ZOOM_COMMAND_SHORT = "#sz"
+        const val SHOW_EXPLOSION_COMMAND_SHORT = "#se"
 
         private const val LAYOUT_TYPE_PREVIEW = 0
         private const val LAYOUT_TYPE_WAITHOST = 1

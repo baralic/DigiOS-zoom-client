@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="us.zoom.sdksample"
     android:installLocation="auto"
     android:versionCode="1"
@@ -58,6 +59,80 @@
 
     <!-- In Meeting PIP Mode will need the following Permissions -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <supports-screens
+        android:anyDensity="true"
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true" />
+
+
+    <uses-feature
+        android:glEsVersion="0x30000" />
+
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen.multitouch"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen.multitouch.distinct"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission
+        android:name="org.khronos.openxr.permission.OPENXR" />
+
+    <uses-permission
+        android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
+
+    <queries>
+
+        <provider
+            android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+
+        <package
+            android:name="com.qualcomm.qti.spaces.services" />
+
+        <package
+            android:name="com.qualcomm.qti.openxrruntime" />
+    </queries>
+
+    <uses-permission
+        android:name="com.qualcomm.qti.qxr.QXRServiceClientPermission" />
+
+    <meta-data
+        android:name="unity.splash-mode"
+        android:value="0" />
+
+    <meta-data
+        android:name="unity.splash-enable"
+        android:value="true" />
+
+    <meta-data
+        android:name="unity.launch-fullscreen"
+        android:value="true" />
+
+    <meta-data
+        android:name="unity.allow-resizable-window"
+        android:value="false" />
+
+    <meta-data
+        android:name="notch.config"
+        android:value="portrait|landscape" />
+
+    <meta-data
+        android:name="unity.auto-report-fully-drawn"
+        android:value="true" />
 
     <application
         android:name="androidx.multidex.MultiDexApplication"
@@ -71,6 +146,36 @@
             android:value="true" />
 
         <activity
+            android:name=".ui.UnityWrapperActivity"
+            android:exported="true"
+            android:hardwareAccelerated="false"
+            android:launchMode="singleTask"
+            android:process=":unityplayer"
+        android:resizeableActivity="false">
+            <intent-filter>
+
+                <category
+                    android:name="android.intent.category.LAUNCHER" />
+
+                <action
+                    android:name="android.intent.action.MAIN" />
+
+            </intent-filter>
+
+            <meta-data
+                android:name="unityplayer.UnityActivity"
+                android:value="true" />
+
+            <meta-data
+                android:name="notch_support"
+                android:value="true" />
+        </activity>
+
+        <meta-data
+            android:name="spaces.version"
+            android:value="0.15.0" />
+
+        <activity
             android:name="us.zoom.sdksample.ui.InitAuthSDKActivity"
             android:configChanges="screenSize|orientation|keyboardHidden|keyboard"
             android:exported="true"
@@ -78,9 +183,10 @@
             android:windowSoftInputMode="adjustNothing"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.DigiOsZoomTheme">
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
