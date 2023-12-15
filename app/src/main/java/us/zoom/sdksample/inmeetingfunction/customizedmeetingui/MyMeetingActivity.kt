@@ -11,8 +11,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.PersistableBundle
 import android.os.Process
 import android.provider.Settings
@@ -186,10 +184,11 @@ open class MyMeetingActivity : FragmentActivity(),
     private val inMeetingServiceListener = object : SimpleInMeetingListener() {
 
         override fun onActiveSpeakerVideoUserChanged(userId: Long) {
-            CoroutineScope(Dispatchers.Main).launch {
-                videoListLayout.onSpeakerChanged(userId)
-            }
-
+            if (inMeetingService.isMyself(userId).not()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    videoListLayout.onSpeakerChanged(userId)
+                }
+            } else Log.d(TAG, ">>> Skip myself!")
             super.onActiveSpeakerVideoUserChanged(userId)
         }
     }

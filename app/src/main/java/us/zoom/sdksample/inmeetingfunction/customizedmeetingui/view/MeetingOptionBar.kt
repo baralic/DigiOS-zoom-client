@@ -179,7 +179,7 @@ class MeetingOptionBar : FrameLayout, View.OnClickListener, Constants.SysPropert
         if (hidden) {
             visibility = INVISIBLE
         } else {
-            postDelayed(autoHidden, getInt(Constants.KEY_AUTO_JOIN, 5000).toLong())
+            postDelayed(autoHidden, getInt(Constants.SysProperty.PROPERTY_AUTO_HIDE_DELAY, 5000).toLong())
             visibility = VISIBLE
             bringToFront()
         }
