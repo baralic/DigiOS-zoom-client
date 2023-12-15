@@ -107,8 +107,11 @@ class AttenderVideoAdapter(
                     selectedView = view
                     selectedPosition = position
                 }
+                view.requestFocus()
             }
         }
+
+        list.scrollToPosition(position)
     }
 
     override fun onBindViewHolder(holder: ViewHold, position: Int) {
