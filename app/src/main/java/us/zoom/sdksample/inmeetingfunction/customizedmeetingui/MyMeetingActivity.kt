@@ -385,6 +385,7 @@ open class MyMeetingActivity : FragmentActivity(),
 
             SHOW_ZOOM_COMMAND, SHOW_ZOOM_COMMAND_SHORT -> {
                 intent = Intent(this, MyMeetingActivity::class.java)
+                intent.putExtra("from", MyMeetingActivity.JOIN_FROM_UNLOGIN)
                 startActivity(intent)
             }
 
